@@ -2,13 +2,12 @@ import { prisma } from "@/lib/db";
 import { requireUser } from "@/lib/auth";
 import { getSiteSettings } from "@/lib/settings";
 import { buildZineHtml } from "@/lib/zine-html";
-import { syncEditionItems } from "@/lib/zine";
+import { syncEditionItems, getZineDirectorySections } from "@/lib/zine";
 import { formatDateRange } from "@/lib/week";
 import { notFound } from "next/navigation";
 import {
   toggleItemExcluded,
   moveItem,
-  updateCoverNote,
   finalizeEdition,
   generateEditionPdf,
 } from "../actions";
@@ -28,14 +27,15 @@ export default async function ViikkolehtiEditorPage({
     await syncEditionItems(edition.id, edition.startDate);
   }
 
-  const [items, settings] = await Promise.all([
+  const [items, settings, { services, meetings }] = await Promise.all([
     prisma.zineItem.findMany({ where: { editionId: edition.id }, orderBy: { sortOrder: "asc" } }),
     getSiteSettings(),
+    getZineDirectorySections(edition.startDate, edition.endDate),
   ]);
   const included = items.filter((i) => !i.excluded);
   const excluded = items.filter((i) => i.excluded);
 
-  const html = buildZineHtml({ edition: { ...edition, items }, settings, mode: "preview" });
+  const html = await buildZineHtml({ edition: { ...edition, items }, settings, services, meetings, mode: "preview" });
   const boundMoveUp = (itemId: string) => moveItem.bind(null, edition.id, itemId, "up");
   const boundMoveDown = (itemId: string) => moveItem.bind(null, edition.id, itemId, "down");
 
@@ -73,24 +73,6 @@ export default async function ViikkolehtiEditorPage({
 
       <div className="grid gap-6 lg:grid-cols-2">
         <div className="flex flex-col gap-6">
-          <section>
-            <h2 className="mb-2 font-bold">Kansilehden teksti (valinnainen)</h2>
-            <form action={updateCoverNote.bind(null, edition.id)} className="flex gap-2">
-              <input
-                name="coverNote"
-                defaultValue={edition.coverNote ?? ""}
-                placeholder="Lyhyt teksti kanteen"
-                className="flex-1 rounded border border-line bg-paper px-3 py-2 text-sm"
-                disabled={edition.status !== "DRAFT"}
-              />
-              {edition.status === "DRAFT" && (
-                <button type="submit" className="rounded border border-line px-3 py-2 text-sm font-semibold">
-                  Tallenna
-                </button>
-              )}
-            </form>
-          </section>
-
           <section>
             <h2 className="mb-2 font-bold">Sisältö lehdessä ({included.length})</h2>
             <ul className="flex flex-col gap-2">

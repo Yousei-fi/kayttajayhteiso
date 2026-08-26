@@ -2,7 +2,7 @@
 
 import { prisma } from "@/lib/db";
 import { requireUser } from "@/lib/auth";
-import { syncEditionItems } from "@/lib/zine";
+import { syncEditionItems, getZineDirectorySections } from "@/lib/zine";
 import { buildZineHtml } from "@/lib/zine-html";
 import { renderZinePdf } from "@/lib/pdf";
 import { getSiteSettings } from "@/lib/settings";
@@ -34,13 +34,6 @@ export async function moveItem(editionId: string, itemId: string, direction: "up
   revalidatePath(`/admin/viikkolehti/${editionId}`);
 }
 
-export async function updateCoverNote(editionId: string, formData: FormData): Promise<void> {
-  await requireUser("ADMIN");
-  const coverNote = String(formData.get("coverNote") ?? "").trim() || null;
-  await prisma.zineEdition.update({ where: { id: editionId }, data: { coverNote } });
-  revalidatePath(`/admin/viikkolehti/${editionId}`);
-}
-
 export async function finalizeEdition(editionId: string): Promise<void> {
   await requireUser("ADMIN");
   const edition = await prisma.zineEdition.findUniqueOrThrow({ where: { id: editionId } });
@@ -66,10 +59,13 @@ export async function generateEditionPdf(editionId: string): Promise<void> {
     }),
     getSiteSettings(),
   ]);
+  const { services, meetings } = await getZineDirectorySections(edition.startDate, edition.endDate);
 
-  const html = buildZineHtml({
+  const html = await buildZineHtml({
     edition,
     settings,
+    services,
+    meetings,
     mode: "print",
     assetBaseUrl: process.env.APP_URL ?? "http://localhost:3000",
   });

@@ -1,6 +1,7 @@
 import { prisma } from "@/lib/db";
 import { getSiteSettings } from "@/lib/settings";
 import { buildZineHtml } from "@/lib/zine-html";
+import { getZineDirectorySections } from "@/lib/zine";
 import { formatDateRange } from "@/lib/week";
 import { notFound } from "next/navigation";
 
@@ -16,8 +17,11 @@ export default async function ArkistoEditionPage({
   });
   if (!edition || edition.status !== "FINAL") notFound();
 
-  const settings = await getSiteSettings();
-  const html = buildZineHtml({ edition, settings, mode: "preview" });
+  const [settings, { services, meetings }] = await Promise.all([
+    getSiteSettings(),
+    getZineDirectorySections(edition.startDate, edition.endDate),
+  ]);
+  const html = await buildZineHtml({ edition, settings, services, meetings, mode: "preview" });
 
   return (
     <main className="mx-auto max-w-3xl px-4 py-8">

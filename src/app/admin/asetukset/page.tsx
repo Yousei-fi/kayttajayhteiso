@@ -40,8 +40,16 @@ export default async function AsetuksetPage() {
           <input name="socialInfo" defaultValue={settings.socialInfo} className="rounded border border-line bg-paper px-3 py-2" />
         </label>
         <label className="flex flex-col gap-1 text-sm font-medium">
-          Takasivun teksti (Markdown, esim. toistuva haittojen vähentämisen tieto, QR-koodin selite)
+          Takasivun teksti (Markdown, esim. toistuva haittojen vähentämisen tieto — näkyy /tietoa-sivulla)
           <textarea name="backPageText" defaultValue={settings.backPageText} rows={8} className="rounded border border-line bg-paper p-3 font-mono text-sm" />
+        </label>
+        <label className="flex flex-col gap-1 text-sm font-medium">
+          Kirjoitusehdotusten sähköposti (viikkolehden viimeinen sivu, QR-koodi)
+          <input name="submissionEmail" defaultValue={settings.submissionEmail} className="rounded border border-line bg-paper px-3 py-2" />
+        </label>
+        <label className="flex flex-col gap-1 text-sm font-medium">
+          Sivuston julkinen osoite (viikkolehden Kokemukset-osiot, QR-koodi)
+          <input name="publicSiteUrl" defaultValue={settings.publicSiteUrl} className="rounded border border-line bg-paper px-3 py-2" />
         </label>
 
         <button type="submit" className="rounded bg-accent px-4 py-2 font-semibold text-white">

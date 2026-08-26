@@ -17,6 +17,8 @@ export async function updateSiteSettings(formData: FormData): Promise<void> {
       socialInfo: String(formData.get("socialInfo") ?? "").trim(),
       backPageText: String(formData.get("backPageText") ?? "").trim(),
       logoPath: String(formData.get("logoPath") ?? "/branding/logo.jpeg").trim(),
+      submissionEmail: String(formData.get("submissionEmail") ?? "").trim(),
+      publicSiteUrl: String(formData.get("publicSiteUrl") ?? "").trim(),
     },
     create: { id: 1 },
   });

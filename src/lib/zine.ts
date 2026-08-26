@@ -3,6 +3,35 @@ import { upcomingEditionRange } from "@/lib/week";
 import type { ZineEdition } from "@prisma/client";
 
 /**
+ * The directory (services, NA meetings) and their Kokemukset posted
+ * during a given edition's week, for the zine's "Palvelut"/"NA-ryhmät"
+ * sections. Unlike alerts/articles these aren't snapshotted into
+ * ZineItem — the directories themselves barely change, and Experience
+ * rows are already immutable historical records once a week has passed,
+ * so a live query naturally gives the same stable result for any past
+ * week (aside from an admin later deleting an abusive post, which should
+ * disappear everywhere).
+ */
+export async function getZineDirectorySections(weekStart: Date, weekEnd: Date) {
+  const weekEndExclusive = new Date(weekEnd.getTime() + 24 * 60 * 60 * 1000);
+  const experienceWindow = { gte: weekStart, lt: weekEndExclusive };
+
+  const [services, meetings] = await Promise.all([
+    prisma.directoryService.findMany({
+      orderBy: [{ category: "asc" }, { name: "asc" }],
+      include: { experiences: { where: { createdAt: experienceWindow }, orderBy: { createdAt: "desc" } } },
+    }),
+    prisma.naMeeting.findMany({
+      where: { cancelled: false },
+      orderBy: [{ weekdayIndex: "asc" }, { time: "asc" }],
+      include: { experiences: { where: { createdAt: experienceWindow }, orderBy: { createdAt: "desc" } } },
+    }),
+  ]);
+
+  return { services, meetings };
+}
+
+/**
  * Finds (or creates) the DRAFT edition for the upcoming Monday-Sunday
  * period, then syncs its items against currently-qualifying alerts and
  * articles: new qualifying content is appended, content that no longer

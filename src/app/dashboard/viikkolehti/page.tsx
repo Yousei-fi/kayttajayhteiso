@@ -1,6 +1,6 @@
 import { requireUser } from "@/lib/auth";
 import { prisma } from "@/lib/db";
-import { getSyncedUpcomingEdition } from "@/lib/zine";
+import { getSyncedUpcomingEdition, getZineDirectorySections } from "@/lib/zine";
 import { getSiteSettings } from "@/lib/settings";
 import { buildZineHtml } from "@/lib/zine-html";
 import { formatDateRange } from "@/lib/week";
@@ -9,12 +9,13 @@ import Link from "next/link";
 export default async function TulevaViikkolehtiPage() {
   const user = await requireUser("MEMBER", "SERVICE", "ADMIN");
   const edition = await getSyncedUpcomingEdition();
-  const [items, settings] = await Promise.all([
+  const [items, settings, { services, meetings }] = await Promise.all([
     prisma.zineItem.findMany({ where: { editionId: edition.id }, orderBy: { sortOrder: "asc" } }),
     getSiteSettings(),
+    getZineDirectorySections(edition.startDate, edition.endDate),
   ]);
 
-  const html = buildZineHtml({ edition: { ...edition, items }, settings, mode: "preview" });
+  const html = await buildZineHtml({ edition: { ...edition, items }, settings, services, meetings, mode: "preview" });
 
   return (
     <div>
