@@ -7,8 +7,8 @@ export async function SiteHeader() {
 
   return (
     <header className="border-b border-line bg-paper">
-      <div className="mx-auto flex max-w-4xl items-center justify-between px-4 py-3">
-        <Link href="/" className="flex items-center gap-2 text-lg font-bold">
+      <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-x-6 gap-y-2 px-4 py-3">
+        <Link href="/" className="flex shrink-0 items-center gap-2 whitespace-nowrap text-lg font-bold">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src="/branding/logo.jpeg" alt="" className="h-8 w-8 rounded object-cover" />
           Tampereen Käyttäjäyhteisö
@@ -16,9 +16,9 @@ export async function SiteHeader() {
             BETA
           </span>
         </Link>
-        <nav className="flex items-center gap-4 text-sm">
+        <nav className="flex flex-wrap items-center gap-4 text-sm">
           <Link href="/tietoa" className="hover:underline">
-            Tietoa meistä
+            Tietoa
           </Link>
           <Link href="/ilmoitukset" className="hover:underline">
             Ilmoitukset
