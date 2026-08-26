@@ -58,6 +58,16 @@ All demo accounts share the password printed by the seed script: `kayttajayhteis
 
 There are exactly three roles (`User.role`): `ADMIN`, `MEMBER`, `SERVICE`. There is no public registration — an admin creates every account from `/admin/kayttajat` (name, email, role, initial password; service accounts also get a `serviceName`). This is intentional: the spec calls for maybe 50 relevant services total, so manual account creation is far simpler than building a self-serve signup/approval flow.
 
+That admin page needs an existing admin to be logged in. For the very first admin — or to recover access if every admin account is locked out — use the CLI script instead, which needs no login:
+
+```bash
+npm run create-admin                    # interactive: prompts for name, email, password
+# or non-interactively (e.g. inside a running container):
+node scripts/create-admin.mjs --name "Ylläpitäjä" --email admin@example.com --password "vähintään8merkkiä"
+```
+
+Running it with an email that already exists promotes that account to `ADMIN`, reactivates it, and resets its password to the one given — this doubles as an account-recovery tool. Against Docker/Coolify, run it via `docker exec -it <container> node scripts/create-admin.mjs` (interactive) or with `docker exec <container> node scripts/create-admin.mjs --name ... --email ... --password ...` (non-interactive).
+
 - **Member** — writes articles, logs street rounds, browses alerts and rounds, previews the upcoming zine.
 - **Service** — posts/edits/archives its own alerts, sees other services' alerts, reads street-round notes (the feedback loop), can preview the upcoming zine.
 - **Admin** — everything above, plus user management, the zine editor (reorder/exclude/finalize/PDF), and site settings/branding.
