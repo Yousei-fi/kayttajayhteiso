@@ -1,0 +1,22 @@
+# Single container + one small volume holding both the SQLite database
+# file and uploaded images/PDFs. No separate database service is needed.
+services:
+  app:
+    build: .
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      APP_URL: ${APP_URL:-http://localhost:3000}
+      SEED_DEMO_DATA: ${SEED_DEMO_DATA:-false}
+    volumes:
+      - kk2-data:/data
+    healthcheck:
+      test: ["CMD", "curl", "-sf", "http://localhost:3000/"]
+      interval: 15s
+      timeout: 5s
+      retries: 10
+      start_period: 20s
+
+volumes:
+  kk2-data:

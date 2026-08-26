@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="480" height="160" viewBox="0 0 480 160">
+  <rect width="480" height="160" fill="none"/>
+  <circle cx="60" cy="80" r="46" fill="#d1495b"/>
+  <circle cx="100" cy="80" r="46" fill="#2a9d8f" opacity="0.85"/>
+  <text x="150" y="72" font-family="Helvetica, Arial, sans-serif" font-size="30" font-weight="700" fill="#201a17">Tampereen</text>
+  <text x="150" y="108" font-family="Helvetica, Arial, sans-serif" font-size="30" font-weight="700" fill="#201a17">Käyttäjäyhteisö</text>
+</svg>

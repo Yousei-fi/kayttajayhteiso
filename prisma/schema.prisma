@@ -1,0 +1,149 @@
+generator client {
+  provider      = "prisma-client-js"
+  binaryTargets = ["native", "debian-openssl-1.1.x", "debian-openssl-3.0.x"]
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  ADMIN
+  MEMBER
+  SERVICE
+}
+
+enum ArticleStatus {
+  DRAFT
+  PUBLISHED
+}
+
+enum EditionStatus {
+  DRAFT
+  FINAL
+}
+
+enum ZineContentType {
+  ALERT
+  ARTICLE
+}
+
+model User {
+  id           String   @id @default(cuid())
+  name         String
+  email        String   @unique
+  passwordHash String
+  role         Role
+  serviceName  String?
+  active       Boolean  @default(true)
+  createdAt    DateTime @default(now())
+
+  alerts       Alert[]
+  articles     Article[]
+  streetRounds StreetRound[]
+  sessions     Session[]
+}
+
+model Session {
+  id        String   @id @default(cuid())
+  userId    String
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+model Alert {
+  id            String    @id @default(cuid())
+  serviceUserId String
+  title         String
+  body          String
+  validFrom     DateTime?
+  validUntil    DateTime?
+  includeInZine Boolean   @default(true)
+  archived      Boolean   @default(false)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  service User @relation(fields: [serviceUserId], references: [id])
+
+  @@index([serviceUserId])
+}
+
+model Article {
+  id            String        @id @default(cuid())
+  authorId      String
+  title         String
+  body          String
+  imagePath     String?
+  status        ArticleStatus @default(DRAFT)
+  includeInZine Boolean       @default(true)
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+
+  author User @relation(fields: [authorId], references: [id])
+
+  @@index([authorId])
+}
+
+model StreetRound {
+  id        String   @id @default(cuid())
+  authorId  String
+  date      DateTime
+  participants String?
+  area      String?
+  notes     String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  author User @relation(fields: [authorId], references: [id])
+
+  @@index([authorId])
+}
+
+model ZineEdition {
+  id          String        @id @default(cuid())
+  startDate   DateTime
+  endDate     DateTime
+  status      EditionStatus @default(DRAFT)
+  createdAt   DateTime      @default(now())
+  publishedAt DateTime?
+  pdfPath     String?
+  coverNote   String?
+
+  items ZineItem[]
+
+  @@unique([startDate, endDate])
+}
+
+model ZineItem {
+  id             String          @id @default(cuid())
+  editionId      String
+  contentType    ZineContentType
+  sourceId       String
+  titleSnapshot  String
+  bodySnapshot   String
+  authorSnapshot String
+  imageSnapshot  String?
+  metaSnapshot   String?
+  sortOrder      Int             @default(0)
+  excluded       Boolean         @default(false)
+
+  edition ZineEdition @relation(fields: [editionId], references: [id], onDelete: Cascade)
+
+  @@unique([editionId, contentType, sourceId])
+  @@index([editionId])
+}
+
+model SiteSettings {
+  id            Int    @id @default(1)
+  orgName       String @default("Tampereen Käyttäjäyhteisö")
+  description   String @default("")
+  contactInfo   String @default("")
+  socialInfo    String @default("")
+  backPageText  String @default("")
+  logoPath      String @default("/branding/logo-placeholder.svg")
+}
