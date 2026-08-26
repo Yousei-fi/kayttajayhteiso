@@ -2,7 +2,7 @@ import { prisma } from "@/lib/db";
 import { formatDate } from "@/lib/week";
 import { notFound } from "next/navigation";
 import { addExperience } from "./actions";
-import { ExperienceForm } from "./experience-form";
+import { ExperienceForm } from "@/components/experience-form";
 
 export default async function PalveluPage({
   params,
@@ -29,10 +29,6 @@ export default async function PalveluPage({
 
       <section className="mt-10">
         <h2 className="mb-2 text-lg font-bold">Jätä kokemus</h2>
-        <p className="mb-3 text-xs text-muted">
-          Kokemukset ovat anonyymejä ja julkisia. Älä kirjoita tunnistettavia henkilötietoja. Enintään 300
-          merkkiä.
-        </p>
         <ExperienceForm action={boundAdd} />
       </section>
 

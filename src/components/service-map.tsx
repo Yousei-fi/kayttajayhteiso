@@ -8,12 +8,14 @@ export type MapPin = {
   name: string;
   lat: number;
   lng: number;
-  category: string;
+  subtitle: string;
 };
 
 const TAMPERE_CENTER: [number, number] = [61.4978, 23.761];
 
-export function ServiceMap({ pins }: { pins: MapPin[] }) {
+/** Renders pins on a Leaflet/OpenStreetMap map; clicking one opens a popup
+ * with a link to `${basePath}/${pin.id}` for full details. */
+export function ServiceMap({ pins, basePath }: { pins: MapPin[]; basePath: string }) {
   const containerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -48,7 +50,10 @@ export function ServiceMap({ pins }: { pins: MapPin[] }) {
       for (const pin of pins) {
         L.marker([pin.lat, pin.lng], { icon })
           .addTo(map)
-          .bindPopup(`<strong>${escapeHtml(pin.name)}</strong><br/>${escapeHtml(pin.category)}`);
+          .bindPopup(
+            `<strong>${escapeHtml(pin.name)}</strong><br/>${escapeHtml(pin.subtitle)}<br/>` +
+              `<a href="${basePath}/${pin.id}" style="color:#2f8fe0;">Näytä tiedot &rarr;</a>`,
+          );
       }
     })();
 
@@ -56,7 +61,7 @@ export function ServiceMap({ pins }: { pins: MapPin[] }) {
       cancelled = true;
       map?.remove();
     };
-  }, [pins]);
+  }, [pins, basePath]);
 
   return (
     <>

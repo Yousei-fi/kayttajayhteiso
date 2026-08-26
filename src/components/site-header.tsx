@@ -20,6 +20,9 @@ export async function SiteHeader() {
           <Link href="/palvelut" className="hover:underline">
             Tampereen palvelut
           </Link>
+          <Link href="/na-ryhmat" className="hover:underline">
+            Tampereen NA-ryhmät
+          </Link>
           <Link href="/viikkolehti" className="hover:underline">
             Viikkolehti
           </Link>

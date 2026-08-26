@@ -20,7 +20,8 @@ export default async function PalvelutPage({
       select: { category: true },
       orderBy: { category: "asc" },
     }),
-    prisma.serviceExperience.findMany({
+    prisma.experience.findMany({
+      where: { serviceId: { not: null } },
       orderBy: { createdAt: "desc" },
       take: 8,
       include: { service: { select: { id: true, name: true } } },
@@ -30,7 +31,7 @@ export default async function PalvelutPage({
   const categories = categoriesRaw.map((c) => c.category);
   const pins = services
     .filter((s) => s.lat != null && s.lng != null)
-    .map((s) => ({ id: s.id, name: s.name, lat: s.lat!, lng: s.lng!, category: s.category }));
+    .map((s) => ({ id: s.id, name: s.name, lat: s.lat!, lng: s.lng!, subtitle: s.category }));
 
   return (
     <main className="mx-auto max-w-3xl px-4 py-8">
@@ -43,7 +44,7 @@ export default async function PalvelutPage({
 
       {pins.length > 0 && (
         <div className="mb-8">
-          <ServiceMap pins={pins} />
+          <ServiceMap pins={pins} basePath="/palvelut" />
         </div>
       )}
 
@@ -87,9 +88,11 @@ export default async function PalvelutPage({
               <li key={e.id} className="rounded border border-line bg-paper p-3 text-sm">
                 <p>{e.body}</p>
                 <p className="mt-1 text-xs text-muted">
-                  <Link href={`/palvelut/${e.service.id}`} className="text-accent-2 hover:underline">
-                    {e.service.name}
-                  </Link>{" "}
+                  {e.service && (
+                    <Link href={`/palvelut/${e.service.id}`} className="text-accent-2 hover:underline">
+                      {e.service.name}
+                    </Link>
+                  )}{" "}
                   · {formatDate(e.createdAt)}
                 </p>
               </li>

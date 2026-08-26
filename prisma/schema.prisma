@@ -163,22 +163,69 @@ model DirectoryService {
   lng         Float?
   createdAt   DateTime @default(now())
 
-  experiences ServiceExperience[]
+  experiences Experience[]
 
   @@unique([category, name])
 }
 
-/// An anonymous short public note ("Kokemus") about a DirectoryService.
-/// No account, no author field by design — this is deliberately
-/// lightweight, moderated only after the fact by an admin.
-model ServiceExperience {
+/// A weekly-recurring Tampere NA (Narcotics Anonymous) meeting, synced from
+/// NA Suomi's public meeting API (see scripts/fetch-na-meetings.mjs).
+/// weekday/weekdayIndex/time describe the recurring weekly slot, not a
+/// single date — there is no per-occurrence row.
+model NaMeeting {
+  id              String    @id @default(cuid())
+  sourceId        Int       @unique
+  name            String
+  weekday         String
+  weekdayIndex    Int
+  time            String
+  durationMinutes Int?
+  address         String?
+  postalCode      String?
+  city            String
+  notes           String?
+  formats         String?
+  mapLink         String?
+  lat             Float?
+  lng             Float?
+  cancelled       Boolean   @default(false)
+  onBreakUntil    DateTime?
+  sourceUrl       String?
+  createdAt       DateTime  @default(now())
+
+  experiences Experience[]
+
+  @@index([weekdayIndex])
+}
+
+/// An anonymous short public note ("Kokemus") about either a
+/// DirectoryService or an NaMeeting — exactly one of serviceId/meetingId
+/// is set. No account, no author field by design; ipAddress is recorded
+/// (disclosed to posters) purely so admins can moderate abuse via
+/// BannedIp, and is never shown to other visitors.
+model Experience {
   id        String   @id @default(cuid())
-  serviceId String
+  serviceId String?
+  meetingId String?
   body      String
+  ipAddress String?
   createdAt DateTime @default(now())
 
-  service DirectoryService @relation(fields: [serviceId], references: [id], onDelete: Cascade)
+  service DirectoryService? @relation(fields: [serviceId], references: [id], onDelete: Cascade)
+  meeting NaMeeting?        @relation(fields: [meetingId], references: [id], onDelete: Cascade)
 
   @@index([serviceId])
+  @@index([meetingId])
   @@index([createdAt])
+}
+
+/// An IP address temporarily blocked from posting new Experience rows.
+/// Applies to both services and meetings — abuse from one IP is abuse
+/// regardless of which page it targeted.
+model BannedIp {
+  id          String   @id @default(cuid())
+  ipAddress   String   @unique
+  reason      String?
+  bannedUntil DateTime
+  createdAt   DateTime @default(now())
 }

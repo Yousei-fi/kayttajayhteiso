@@ -93,25 +93,32 @@ The real Tampereen Käyttäjäyhteisö logo lives at `public/branding/logo.jpeg`
 
 The same admin settings page also holds the org description, contact/social info, and the zine's back-page text (Markdown) — the recurring harm-reduction blurb, contact details, etc. shown on the printed back cover and the public `/tietoa` page.
 
-## Tampereen palvelut (public service directory + map)
+## Tampereen palvelut & Tampereen NA-ryhmät (public directories + maps)
 
-A separate, much simpler feature from alerts/articles/zine: a public, no-login directory of Tampere drug/mental-health services at `/palvelut`, sourced from a hand-maintained list rather than anything services manage themselves. Each entry can have an anonymous public note attached — deliberately called **"Kokemus"** (experience), not "comment" — capped at 300 characters, no account or author field at all.
+Two separate, much simpler features from alerts/articles/zine: public, no-login directories at `/palvelut` (Tampere drug/mental-health services) and `/na-ryhmat` (Tampere Narcotics Anonymous meetings), both sourced from external data rather than anything services manage themselves. Either kind of entry can have an anonymous public note attached — deliberately called **"Kokemus"** (experience), not "comment" — capped at 300 characters, with no account or author field. Both note types share one `Experience` model (`serviceId` or `meetingId`, exactly one set) and one moderation page.
 
-- **Data source**: `prisma/data/services-source.txt` (copied from the old project's `services.txt`) is parsed by `scripts/build-services-data.mjs` into `prisma/data/services.json`, which `prisma/seed.ts` reads to upsert `DirectoryService` rows (idempotent on `category` + `name`, so re-seeding never duplicates them).
-- **Geocoding**: `scripts/geocode-services.mjs` fills in `lat`/`lng` for entries that have an address, using OpenStreetMap's free Nominatim API (no key needed). This is a **one-time build step**, not something the running app calls — re-run it manually only if `services-source.txt` changes, respecting Nominatim's ~1 request/second usage policy (already built into the script).
-- **Map**: `src/components/service-map.tsx` renders Leaflet + OpenStreetMap tiles (also free, no API key) with simple CSS dot markers, client-side only.
-- **Kokemukset**: `src/app/palvelut/[id]/actions.ts` lets anyone post one, with a server-side 300-character cap and tag-stripping — deliberately no CAPTCHA or rate limiting for this MVP (see "Known limitations"). Admins can delete individual ones at `/admin/kokemukset`, the only moderation this needs for now.
+**Tampereen palvelut**:
+- **Data source**: `prisma/data/services-source.txt` (copied from the old project's `services.txt`) is parsed by `scripts/build-services-data.mjs` into `prisma/data/services.json`.
+- Only 16 of the ~122 parsed entries have a street address (and therefore a map pin) — most of the source list is phone lines, peer-support groups, or organizations without a single physical address. That's a property of the source data, not a parsing bug.
 
-Only 16 of the ~122 parsed entries have a street address (and therefore a map pin) — most of the source list is phone lines, peer-support groups, or organizations without a single physical address. That's a property of the source data, not a parsing bug.
+**Tampereen NA-ryhmät**:
+- **Data source**: `scripts/fetch-na-meetings.mjs` pulls every meeting from NA Suomi's public WordPress REST API (`nasuomi.org/wp-json/wp/v2/kokoukset` — the same endpoint [Yousei-fi/12askelta](https://github.com/Yousei-fi/12askelta) polls weekly), keeps only Tampere ones (~26 of ~242 nationwide), and writes `prisma/data/na-meetings.json`.
+- A meeting is a **weekly-recurring slot** (weekday + time), not a dated event, so "next 3 meetings" (`src/lib/na-meetings.ts`) is computed relative to the current moment rather than read off a date column. A meeting can also be temporarily "tauolla" (on break until a date) or cancelled — both come straight from the source data and are excluded from "next 3" while still shown (marked) in the full list.
+
+**Shared machinery**:
+- **Geocoding**: `scripts/geocode-services.mjs` / `scripts/geocode-na-meetings.mjs` fill in `lat`/`lng` using OpenStreetMap's free Nominatim API (no key needed). These are **one-time build steps**, not something the running app calls — re-run them manually only if the source data changes, respecting Nominatim's ~1 request/second usage policy (already built into the scripts).
+- **Map**: `src/components/service-map.tsx` (used by both pages) renders Leaflet + OpenStreetMap tiles (also free, no API key) with simple CSS dot markers; clicking one opens a popup linking to that entry's detail page.
+- **Reference data is not demo data**: `prisma/seed-reference.ts` upserts both directories from their JSON files (idempotent — safe to re-run) and runs **unconditionally on every container boot** (`docker/entrypoint.sh`), unlike `prisma/seed.ts`'s fake `[DEMO]` content which only runs when `SEED_DEMO_DATA=true`. Getting this distinction right matters: an earlier version gated the service directory behind the demo flag, so a production deploy without `SEED_DEMO_DATA=true` showed an empty `/palvelut` page even though the code and migrations were correct.
+- **Kokemukset**: `src/components/experience-form.tsx` (shared by both pages) shows a fixed red disclaimer — "Älä jaa yksityisiä tietoja tai vihapuhetta. IP-osoitteesi tallennetaan." — and every submission records the poster's IP (`src/lib/request-ip.ts`, read from `x-forwarded-for`/`x-real-ip`) purely so admins can act on abuse. `/admin/kokemukset` lists every Kokemus across both directories with its IP, lets an admin delete one or ban its IP for 1/7/30 days (`BannedIp`, checked before every new post), and lists/lifts active bans. Deliberately no CAPTCHA or automatic rate limiting beyond that (see "Known limitations").
 
 ## Project layout
 
 ```
-prisma/                   schema, migrations, seed script, data/ (service directory source + parsed JSON)
-scripts/                  one-time data build steps (parse services.txt, geocode addresses)
-src/lib/                  db client, auth, markdown, zine sync, zine HTML template, PDF rendering, uploads
-src/components/           small shared UI (site header, markdown editor, service map)
-src/app/                  public pages, /palvelut/*, /kirjaudu, /dashboard/*, /admin/*, /uploads/[...path]
+prisma/                   schema, migrations, seed.ts (demo data), seed-reference.ts (real directories), data/
+scripts/                  one-time data build steps (parse services.txt, fetch/geocode NA meetings & services)
+src/lib/                  db client, auth, markdown, zine sync/HTML/PDF, uploads, request-ip, bans, na-meetings
+src/components/           shared UI (site header, markdown editor, service map, experience form)
+src/app/                  public pages, /palvelut/*, /na-ryhmat/*, /kirjaudu, /dashboard/*, /admin/*, /uploads/[...path]
 public/branding/          logo + replacement instructions
 ```
 
@@ -145,5 +152,6 @@ Either way, a single container (Next.js + Puppeteer/Chromium) and one named volu
 - No email sending anywhere — admins set initial passwords directly, no invite emails or password-reset flow. Fine for a handful of manually-managed accounts.
 - No public self-registration for members or services, by design (see "Accounts and roles" above).
 - Prisma is pinned to the 6.x line rather than 7.x, which changed how datasource URLs are configured (driver adapters instead of a plain `url = env(...)` in the schema). 6.x's config is simpler and better documented; a future upgrade is a good idea once that model settles, but wasn't worth the added moving parts here.
-- Anonymous "Kokemus" posts on `/palvelut` have no CAPTCHA and no rate limiting — only a server-side 300-character cap and admin delete at `/admin/kokemukset`. Acceptable at expected traffic; revisit if the feature gets abused.
-- The service directory (`DirectoryService`) has no admin edit UI yet — it's maintained by re-running the parse/geocode scripts against an updated `services-source.txt`, or by hand via `npx prisma studio`. Fine for a source list that changes rarely; worth building a proper editor if that stops being true.
+- Anonymous "Kokemus" posts on `/palvelut` and `/na-ryhmat` have no CAPTCHA and no automatic rate limiting — only a server-side 300-character cap, a disclosed IP address per post, and admin delete/ban at `/admin/kokemukset`. Acceptable at expected traffic; revisit if the feature gets abused faster than an admin can ban IPs.
+- IP bans are per-IP, not per-subnet or fingerprint, so they're trivially bypassed by anyone who changes IP (VPN, mobile data, etc.). It raises the bar for casual abuse without stopping a determined bad actor — a deliberate, low-effort tradeoff for this feature's scale.
+- Neither `DirectoryService` nor `NaMeeting` has an admin edit UI yet — both are maintained by re-running their fetch/parse/geocode scripts, or by hand via `npx prisma studio`. Fine for source lists that change rarely (NA meetings are only re-fetched manually, not on the weekly timer the old 12askelta project used); worth building a proper editor if that stops being true.
