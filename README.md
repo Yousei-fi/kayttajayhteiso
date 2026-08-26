@@ -103,18 +103,30 @@ src/app/                  public pages, /kirjaudu, /dashboard/*, /admin/*, /uplo
 public/branding/          logo placeholder + replacement instructions
 ```
 
-## Deployment (Docker)
+## Deployment
+
+`docker-compose.yml` is written **Coolify-native by default**: no host port mapping (`expose: 3000` only — Coolify's Traefik reaches it on the internal compose network) and a required `APP_URL` with no fallback, so a deploy that forgets to set it fails loudly instead of quietly baking broken `http://localhost:3000` image URLs into PDFs.
+
+### On Coolify
+
+1. New Resource → Docker Compose, pointed at this repo's `main` branch (it will use `docker-compose.yml` at the root).
+2. In the Coolify UI, assign your domain to the **`app`** service — Coolify detects the `expose: 3000` port automatically. Leave "Port Mappings" empty; don't add one.
+3. Set the environment variable `APP_URL` to that same `https://your-domain` (required — the container won't start without it). Optionally set `SEED_DEMO_DATA=true` for the *first* deploy only, then remove it.
+4. Deploy. On boot the container runs `prisma migrate deploy` automatically, then starts the app once Coolify's healthcheck (`curl` against `/`) passes.
+
+### Plain `docker compose` (no Coolify / no reverse proxy in front)
 
 ```bash
-cp .env.example .env   # set APP_URL to your real domain; used to build absolute image URLs in PDFs
-docker compose up -d --build
+cp .env.example .env   # set APP_URL to wherever this will actually be reached, e.g. http://your-server-ip:3000
 ```
 
-This runs a single container (Next.js + Puppeteer/Chromium) and one named volume (`kk2-data`) holding both the SQLite file and uploaded/generated files at `/data`. On startup the container runs `prisma migrate deploy` automatically; set `SEED_DEMO_DATA=true` (env var) to also insert demo data on first boot — remove it afterwards.
+Add a host port mapping since nothing else is exposing one — either add `ports: ["3000:3000"]` under the `app` service in `docker-compose.yml`, or run:
 
-There's no separate database container to operate, back up, or lose track of: back up the single `kk2-data` volume (or just `/data/app.db` plus `/data/uploads/`) and you have everything.
+```bash
+docker compose run --service-ports -d app
+```
 
-For a Coolify-style platform (as the old project used): point it at this repo's `docker-compose.yml`, assign a domain to the `app` service, and set `APP_URL` to that domain.
+Either way, a single container (Next.js + Puppeteer/Chromium) and one named volume (`kk2-data`) hold everything — the SQLite file and uploaded/generated files at `/data`. There's no separate database container to operate, back up, or lose track of: back up the `kk2-data` volume (or just `/data/app.db` plus `/data/uploads/`) and you have the whole app's state.
 
 ## Known limitations / intentional non-features
 
