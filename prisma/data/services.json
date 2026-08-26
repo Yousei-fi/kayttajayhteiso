@@ -1,0 +1,1100 @@
+[
+  {
+    "category": "KIIREELLINEN APU JA KRIISIPALVELUT",
+    "name": "Hätänumero 112",
+    "address": null,
+    "phone": null,
+    "description": "Henkeä uhkaavat tilanteet, vakava itsetuhoisuus, tajuttomuus, yliannostus tai muu välitön vaara.",
+    "lat": null,
+    "lng": null
+  },
+  {
+    "category": "KIIREELLINEN APU JA KRIISIPALVELUT",
+    "name": "Pirkanmaan Päivystysapu",
+    "address": null,
+    "phone": "116 117",
+    "description": "Puhelin: 116 117 Kiireelliset terveysongelmat silloin, kun oma sosiaali- ja terveysasema on suljettu.",
+    "lat": null,
+    "lng": null
+  },
+  {
+    "category": "KIIREELLINEN APU JA KRIISIPALVELUT",
+    "name": "Pirkanmaan sosiaali- ja kriisipäivystys",
+    "address": "Sorinkatu 12 D, 2. kerros, Tampere",
+    "phone": "050 062 5990",
+    "description": "Puhelin: 050 062 5990 Avoinna ympäri vuorokauden. Äkilliset kriisit, väkivalta, asumisen kriisit, läheisen kuolema ja muut kiireelliset sosiaaliset tilanteet.",
+    "lat": 61.4928068,
+    "lng": 23.7731265
+  },
+  {
+    "category": "KIIREELLINEN APU JA KRIISIPALVELUT",
+    "name": "Tays psykiatrian päivystyspoliklinikka",
+    "address": "Arkkiatrinkuja 1, T-rakennus, C-osa, 1. kerros, Tampere",
+    "phone": null,
+    "description": "Pirkanmaan ympärivuorokautinen aikuisten psykiatrinen päivystys. Ennen hakeutumista yhteys omaan sote-asemaan tai Päivystysapuun 116 117. Välittömässä hengenvaarassa 112.",
+    "lat": 61.5073488,
+    "lng": 23.817757
+  },
+  {
+    "category": "KIIREELLINEN APU JA KRIISIPALVELUT",
+    "name": "Tays Päivystys Acuta",
+    "address": "Ensitie 8, Tampere",
+    "phone": null,
+    "description": "Vakavat ja välitöntä sairaalahoitoa vaativat tilanteet.",
+    "lat": 61.5055047,
+    "lng": 23.8134559
+  },
+  {
+    "category": "KIIREELLINEN APU JA KRIISIPALVELUT",
+    "name": "MIELI Kriisipuhelin",
+    "address": null,
+    "phone": "09 2525 0111",
+    "description": "Puhelin: 09 2525 0111 Avoinna suomeksi ympäri vuorokauden.",
+    "lat": null,
+    "lng": null
+  },
+  {
+    "category": "KIIREELLINEN APU JA KRIISIPALVELUT",
+    "name": "Kriisikeskus Osviitta",
+    "address": "Sorinkatu 4 C, Tampere",
+    "phone": "0400 734 793, maanantaista torstaihin klo 10–12",
+    "description": "Ajanvaraus: 0400 734 793, maanantaista torstaihin klo 10–12. Maksutonta keskusteluapua ilman lähetettä tai diagnoosia.",
+    "lat": 61.4943572,
+    "lng": 23.7728051
+  },
+  {
+    "category": "KIIREELLINEN APU JA KRIISIPALVELUT",
+    "name": "Nollalinja",
+    "address": null,
+    "phone": "116 016",
+    "description": "Puhelin: 116 016 Avoinna ympäri vuorokauden. Apua lähisuhdeväkivaltaa tai naisiin kohdistuvaa väkivaltaa kokeneille sekä heidän läheisilleen.",
+    "lat": null,
+    "lng": null
+  },
+  {
+    "category": "PÄIHDEHOITO, HUUMEHOITO JA RIIPPUVUUSPALVELUT",
+    "name": "Happi – Päihde- ja riippuvuussairauksien yksikkö",
+    "address": "Hatanpäänkatu 22, O-rakennus, yläpiha, Tampere",
+    "phone": "044 485 8674",
+    "description": "Avoin vastaanotto maanantaista perjantaihin klo 12–14. Hoidon tarpeen arviointi: 044 485 8674. Päivystävä sairaanhoitaja: 044 472 2595. Apua huumeiden käyttöön, monipäihderiippuvuuksiin ja muihin vaikeisiin riippuvuuksiin. Yksikössä toteutetaan myös opioidikorvaushoitoa.",
+    "lat": 61.4861292,
+    "lng": 23.7618858
+  },
+  {
+    "category": "PÄIHDEHOITO, HUUMEHOITO JA RIIPPUVUUSPALVELUT",
+    "name": "Vety – Riippuvuushoidon yksikkö",
+    "address": "Elämänaukio 2, Tays B-rakennus, 10. kerros, Tampere",
+    "phone": null,
+    "description": "Ympärivuorokautinen vieroitus- ja osastohoitoyksikkö. Hoitaa vaikeita alkoholi-, huume-, lääke-, stimulantti- ja sekakäyttöön liittyviä tilanteita. Yksikköön hakeudutaan yleensä sosiaali- tai terveydenhuollon ammattilaisen kautta.",
+    "lat": 61.5047983,
+    "lng": 23.8139132
+  },
+  {
+    "category": "PÄIHDEHOITO, HUUMEHOITO JA RIIPPUVUUSPALVELUT",
+    "name": "Tampereen selviämishoitoasema",
+    "address": "Sorinkatu 12 D, Tampere",
+    "phone": null,
+    "description": "Avoinna ympäri vuorokauden. Yli 16-vuotiaiden päihtyneiden turvallinen seuranta silloin, kun sairaalahoitoa ei tarvita. Asiakkaat tulevat viranomaisen, kuten poliisin tai ensihoidon, ohjaamina.",
+    "lat": 61.4929984,
+    "lng": 23.7729622
+  },
+  {
+    "category": "PÄIHDEHOITO, HUUMEHOITO JA RIIPPUVUUSPALVELUT",
+    "name": "K-klinikka Tampere",
+    "address": "Sumeliuksenkatu 13 A, Tampere",
+    "phone": "040 570 7830",
+    "description": "A-klinikka Oy. Puhelin: 040 570 7830. Avoinna maanantaista perjantaihin klo 8–16. Huumehoidon avohoitoa ja opioidikorvaushoitoa.",
+    "lat": 61.4954501,
+    "lng": 23.777085
+  },
+  {
+    "category": "PÄIHDEHOITO, HUUMEHOITO JA RIIPPUVUUSPALVELUT",
+    "name": "Rinnekodit Breikki Tampere",
+    "address": "Gauffininkatu 3, Tampere",
+    "phone": null,
+    "description": "Huumehoidon avohoitoa ja opioidikorvaushoitoa täysi-ikäisille tamperelaisille ja oriveteläisille. Hoitoon ohjaudutaan Pirhan tekemän hoidon tarpeen arvioinnin kautta.",
+    "lat": 61.4823527,
+    "lng": 23.7535795
+  },
+  {
+    "category": "PÄIHDEHOITO, HUUMEHOITO JA RIIPPUVUUSPALVELUT",
+    "name": "Suunta",
+    "address": null,
+    "phone": null,
+    "description": "Tampereella toimiva huumehoidon avohoitoyksikkö. Hoitoon ohjaudutaan Pirhan palvelujen ja hoidon tarpeen arvioinnin kautta.",
+    "lat": null,
+    "lng": null
+  },
+  {
+    "category": "PÄIHDEHOITO, HUUMEHOITO JA RIIPPUVUUSPALVELUT",
+    "name": "A-klinikkayhteisö Tampere",
+    "address": null,
+    "phone": null,
+    "description": "Päihdekuntoutusta yhteisöllisessä ja laitosmuotoisessa ympäristössä.",
+    "lat": null,
+    "lng": null
+  },
+  {
+    "category": "PÄIHDEHOITO, HUUMEHOITO JA RIIPPUVUUSPALVELUT",
+    "name": "Vieroitushoitoyksikkö Tampere",
+    "address": null,
+    "phone": null,
+    "description": "A-klinikka Oy:n vieroitushoitoa alkoholi-, lääke- ja huumeriippuvuuksiin.",
+    "lat": null,
+    "lng": null
+  },
+  {
+    "category": "PÄIHDEHOITO, HUUMEHOITO JA RIIPPUVUUSPALVELUT",
+    "name": "Nervi – Terveysneuvonta Tampere",
+    "address": null,
+    "phone": null,
+    "description": "A-klinikka Oy:n matalan kynnyksen terveysneuvontaa huumeita käyttäville. Neuvontaa, hoitoon ohjausta, tartuntatautien ehkäisyä ja käyttövälineisiin liittyvää haittojen vähentämistä.",
+    "lat": null,
+    "lng": null
+  },
+  {
+    "category": "PÄIHDEHOITO, HUUMEHOITO JA RIIPPUVUUSPALVELUT",
+    "name": "Katuklinikka Tampere",
+    "address": null,
+    "phone": null,
+    "description": "A-klinikkasäätiön jalkautuvaa ja matalan kynnyksen terveys- ja sosiaalineuvontaa kaikkein heikoimmassa asemassa oleville.",
+    "lat": null,
+    "lng": null
+  },
+  {
+    "category": "PÄIHDEHOITO, HUUMEHOITO JA RIIPPUVUUSPALVELUT",
+    "name": "VÖLJY",
+    "address": null,
+    "phone": null,
+    "description": "A-klinikkasäätiön Tampereella toteuttamaa tukea ja palveluohjausta päihteitä käyttäville ja vaikeassa elämäntilanteessa oleville.",
+    "lat": null,
+    "lng": null
+  },
+  {
+    "category": "PÄIHDEHOITO, HUUMEHOITO JA RIIPPUVUUSPALVELUT",
+    "name": "Tampereen A-kilta",
+    "address": null,
+    "phone": null,
+    "description": "Päihteetöntä vertaistukea, kohtaamispaikkatoimintaa, asumiseen liittyvää tukea ja huumehoidon avohoitoa.",
+    "lat": null,
+    "lng": null
+  },
+  {
+    "category": "PÄIHDEHOITO, HUUMEHOITO JA RIIPPUVUUSPALVELUT",
+    "name": "Valo-Valmennusyhdistys",
+    "address": null,
+    "phone": null,
+    "description": "Avopäihdekuntoutusta, asumisen tukea, työpajatoimintaa ja Starttipaja-toimintaa.",
+    "lat": null,
+    "lng": null
+  },
+  {
+    "category": "PÄIHDEHOITO, HUUMEHOITO JA RIIPPUVUUSPALVELUT",
+    "name": "ViaDia Pirkanmaa – Kadulta kotiin",
+    "address": null,
+    "phone": null,
+    "description": "Asunnottomuutta ja päihteiden käytöstä aiheutuvia haittoja vähentävää tukea sekä kuntouttavaa työtoimintaa.",
+    "lat": null,
+    "lng": null
+  },
+  {
+    "category": "PÄIHDEHOITO, HUUMEHOITO JA RIIPPUVUUSPALVELUT",
+    "name": "EHYT ry:n Päihdeneuvonta",
+    "address": null,
+    "phone": "0800 900 45",
+    "description": "Puhelin: 0800 900 45. Maksuton ja anonyymi palvelu ympäri vuorokauden. Päihteitä käyttäville, läheisille ja ammattilaisille.",
+    "lat": null,
+    "lng": null
+  },
+  {
+    "category": "PÄIHDEHOITO, HUUMEHOITO JA RIIPPUVUUSPALVELUT",
+    "name": "EHYT ry:n Päihdeasiamies",
+    "address": null,
+    "phone": null,
+    "description": "Neuvontaa päihdepalveluihin, asiakkaan oikeuksiin ja palveluissa kohdattuihin ongelmiin liittyvissä asioissa.",
+    "lat": null,
+    "lng": null
+  },
+  {
+    "category": "AIKUISTEN PSYKIATRIA",
+    "name": "Psykiatrian päivystyspoliklinikka",
+    "address": null,
+    "phone": null,
+    "description": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "category": "AIKUISTEN PSYKIATRIA",
+    "name": "Akuuttipsykiatrian poliklinikka",
+    "address": null,
+    "phone": null,
+    "description": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "category": "AIKUISTEN PSYKIATRIA",
+    "name": "Psykiatrian kriisiosasto",
+    "address": null,
+    "phone": null,
+    "description": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "category": "AIKUISTEN PSYKIATRIA",
+    "name": "Mielialahäiriöpoliklinikka",
+    "address": "Hallituskatu 14–16, Tampere",
+    "phone": null,
+    "description": null,
+    "lat": 61.4965112,
+    "lng": 23.7564223
+  },
+  {
+    "category": "AIKUISTEN PSYKIATRIA",
+    "name": "Psykoosisairauksien poliklinikka",
+    "address": "Tipotie 4, Tampere",
+    "phone": null,
+    "description": null,
+    "lat": 61.4994801,
+    "lng": 23.7297371
+  },
+  {
+    "category": "AIKUISTEN PSYKIATRIA",
+    "name": "Liikkuva psykoosisairauksien poliklinikka",
+    "address": null,
+    "phone": null,
+    "description": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "category": "AIKUISTEN PSYKIATRIA",
+    "name": "Yleissairaalapsykiatrian poliklinikka",
+    "address": "Arkkiatrinkuja 1, Tampere",
+    "phone": null,
+    "description": null,
+    "lat": 61.5073488,
+    "lng": 23.817757
+  },
+  {
+    "category": "AIKUISTEN PSYKIATRIA",
+    "name": "Pakolaispsykiatrian poliklinikka",
+    "address": "Hallituskatu 14–16, Tampere",
+    "phone": null,
+    "description": null,
+    "lat": 61.4965112,
+    "lng": 23.7564223
+  },
+  {
+    "category": "AIKUISTEN PSYKIATRIA",
+    "name": "Psykiatriset osastot ja tehostettu avohoito",
+    "address": null,
+    "phone": null,
+    "description": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "category": "AIKUISTEN PSYKIATRIA",
+    "name": "Syömishäiriöiden erikoissairaanhoito",
+    "address": null,
+    "phone": null,
+    "description": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "category": "AIKUISTEN PSYKIATRIA",
+    "name": "Neuropsykiatriset tutkimukset ja hoito osana soveltuvia erikoissairaanhoidon palveluja",
+    "address": null,
+    "phone": null,
+    "description": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "category": "LASTENPSYKIATRIA",
+    "name": "Lastenpsykiatrian alueyksikkö Tampere",
+    "address": null,
+    "phone": null,
+    "description": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "category": "LASTENPSYKIATRIA",
+    "name": "Lastenpsykiatrian alkuarviointiyksikkö",
+    "address": null,
+    "phone": null,
+    "description": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "category": "LASTENPSYKIATRIA",
+    "name": "Lastenpsykiatrian avohoidon yksikkö",
+    "address": null,
+    "phone": null,
+    "description": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "category": "LASTENPSYKIATRIA",
+    "name": "Lastenpsykiatrian osasto- ja akuuttihoidon yksikkö",
+    "address": null,
+    "phone": null,
+    "description": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "category": "NUORISOPSYKIATRIA",
+    "name": "Nuorisopsykiatrian poliklinikka",
+    "address": null,
+    "phone": null,
+    "description": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "category": "NUORISOPSYKIATRIA",
+    "name": "Nuorisopsykiatrian osasto",
+    "address": null,
+    "phone": null,
+    "description": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "category": "NUORISOPSYKIATRIA",
+    "name": "EVA-yksikkö eli erityisen vaikeahoitoisten alaikäisten psykiatrinen tutkimus- ja hoitoyksikkö",
+    "address": null,
+    "phone": null,
+    "description": "Taysin psykiatrisiin palveluihin tarvitaan yleensä lääkärin tai muun terveydenhuollon ammattilaisen lähete.",
+    "lat": null,
+    "lng": null
+  },
+  {
+    "category": "TAMPEREELLA TOIMIVAT MIELENTERVEYS- JA PÄIHDEJÄRJESTÖT",
+    "name": "A-klinikkasäätiö",
+    "address": null,
+    "phone": null,
+    "description": "Päihde- ja riippuvuustyö, haittojen vähentäminen, verkkopalvelut, Katuklinikka ja VÖLJY.",
+    "lat": null,
+    "lng": null
+  },
+  {
+    "category": "TAMPEREELLA TOIMIVAT MIELENTERVEYS- JA PÄIHDEJÄRJESTÖT",
+    "name": "EHYT ry",
+    "address": null,
+    "phone": null,
+    "description": "Päihdehaittojen ehkäisy, neuvonta, koulutus ja kohtaamispaikkatoiminta.",
+    "lat": null,
+    "lng": null
+  },
+  {
+    "category": "TAMPEREELLA TOIMIVAT MIELENTERVEYS- JA PÄIHDEJÄRJESTÖT",
+    "name": "Elokolo Tampere",
+    "address": null,
+    "phone": null,
+    "description": "EHYT ry:n päihteetön ja maksuton kohtaamispaikka.",
+    "lat": null,
+    "lng": null
+  },
+  {
+    "category": "TAMPEREELLA TOIMIVAT MIELENTERVEYS- JA PÄIHDEJÄRJESTÖT",
+    "name": "FinFami Pirkanmaa ry",
+    "address": null,
+    "phone": null,
+    "description": "Tukea ihmisille, joiden läheisellä on mielenterveys- tai päihdeongelmia. Keskusteluapua, vertaistukiryhmiä, kursseja ja toimintaa omaisille.",
+    "lat": null,
+    "lng": null
+  },
+  {
+    "category": "TAMPEREELLA TOIMIVAT MIELENTERVEYS- JA PÄIHDEJÄRJESTÖT",
+    "name": "Irti Huumeista ry",
+    "address": null,
+    "phone": null,
+    "description": "Tukea huumeita käyttäville, käytön lopettaneille ja heidän läheisilleen. Tampereella läheisryhmätoimintaa yhteistyössä KRIS-Tampereen kanssa.",
+    "lat": null,
+    "lng": null
+  },
+  {
+    "category": "TAMPEREELLA TOIMIVAT MIELENTERVEYS- JA PÄIHDEJÄRJESTÖT",
+    "name": "KoKoA – Koulutetut Kokemusasiantuntijat ry",
+    "address": null,
+    "phone": null,
+    "description": "Kokemusasiantuntijatoiminnan kehittämistä, koulutusta ja välitystä.",
+    "lat": null,
+    "lng": null
+  },
+  {
+    "category": "TAMPEREELLA TOIMIVAT MIELENTERVEYS- JA PÄIHDEJÄRJESTÖT",
+    "name": "KRIS-Tampere ry",
+    "address": null,
+    "phone": null,
+    "description": "Tukea rikos- ja päihdetaustaisille sekä vankilasta vapautuville. Vertaistukea, palveluohjausta ja päihteetöntä toimintaa.",
+    "lat": null,
+    "lng": null
+  },
+  {
+    "category": "TAMPEREELLA TOIMIVAT MIELENTERVEYS- JA PÄIHDEJÄRJESTÖT",
+    "name": "Kumppanuustalo Artteli",
+    "address": null,
+    "phone": null,
+    "description": "Useiden sosiaali-, terveys-, vammais- ja mielenterveysjärjestöjen yhteinen toimintatalo Tampereella.",
+    "lat": null,
+    "lng": null
+  },
+  {
+    "category": "TAMPEREELLA TOIMIVAT MIELENTERVEYS- JA PÄIHDEJÄRJESTÖT",
+    "name": "Legioonateatteri",
+    "address": null,
+    "phone": null,
+    "description": "Teatteri- ja yhteisötoimintaa vaikeassa elämäntilanteessa oleville, päihdekuntoutujille ja nuorille.",
+    "lat": null,
+    "lng": null
+  },
+  {
+    "category": "TAMPEREELLA TOIMIVAT MIELENTERVEYS- JA PÄIHDEJÄRJESTÖT",
+    "name": "Maria Akatemia ry",
+    "address": "Puutarhakatu 11 C, 4. kerros",
+    "phone": null,
+    "description": "Tukea naisille tunteiden, väkivallan, aggression ja elämän kriisien käsittelyyn. Tampereen toimipiste: Puutarhakatu 11 C, 4. kerros.",
+    "lat": 61.4990939,
+    "lng": 23.7578205
+  },
+  {
+    "category": "TAMPEREELLA TOIMIVAT MIELENTERVEYS- JA PÄIHDEJÄRJESTÖT",
+    "name": "Mielen ry",
+    "address": null,
+    "phone": null,
+    "description": "Mielenterveys- ja päihdekuntoutujien toimintaa, asumispalveluja, työpajatoimintaa ja sosiaalista kuntoutusta.",
+    "lat": null,
+    "lng": null
+  },
+  {
+    "category": "TAMPEREELLA TOIMIVAT MIELENTERVEYS- JA PÄIHDEJÄRJESTÖT",
+    "name": "Mielen Avoin Paja Inspis",
+    "address": null,
+    "phone": null,
+    "description": "Avoin kohtaamis- ja toimintapaikka.",
+    "lat": null,
+    "lng": null
+  },
+  {
+    "category": "TAMPEREELLA TOIMIVAT MIELENTERVEYS- JA PÄIHDEJÄRJESTÖT",
+    "name": "Mielen Iideshovin avoin tupa",
+    "address": null,
+    "phone": null,
+    "description": "Matalan kynnyksen kohtaamispaikka ja ryhmätoimintaa.",
+    "lat": null,
+    "lng": null
+  },
+  {
+    "category": "TAMPEREELLA TOIMIVAT MIELENTERVEYS- JA PÄIHDEJÄRJESTÖT",
+    "name": "Mielen Tammelan lähitori",
+    "address": null,
+    "phone": null,
+    "description": "Neuvontaa, ryhmiä ja yhteisöllistä toimintaa.",
+    "lat": null,
+    "lng": null
+  },
+  {
+    "category": "TAMPEREELLA TOIMIVAT MIELENTERVEYS- JA PÄIHDEJÄRJESTÖT",
+    "name": "Mielen Avoin Opisto / Recovery College",
+    "address": null,
+    "phone": null,
+    "description": "Kokemustietoa ja ammatillista tietoa yhdistäviä kursseja mielenterveydestä ja toipumisesta.",
+    "lat": null,
+    "lng": null
+  },
+  {
+    "category": "TAMPEREELLA TOIMIVAT MIELENTERVEYS- JA PÄIHDEJÄRJESTÖT",
+    "name": "Mielenterveyden keskusliitto",
+    "address": null,
+    "phone": null,
+    "description": "Neuvontaa, vertaistukea, kursseja ja toimintaa mielenterveysongelmia kokeneille.",
+    "lat": null,
+    "lng": null
+  },
+  {
+    "category": "TAMPEREELLA TOIMIVAT MIELENTERVEYS- JA PÄIHDEJÄRJESTÖT",
+    "name": "Naistenkartano ry",
+    "address": null,
+    "phone": null,
+    "description": "Tukea naisille riippuvuuksiin, haitallisiin toimintamalleihin, ihmissuhteisiin ja elämänhallintaan.",
+    "lat": null,
+    "lng": null
+  },
+  {
+    "category": "TAMPEREELLA TOIMIVAT MIELENTERVEYS- JA PÄIHDEJÄRJESTÖT",
+    "name": "Nauha ry",
+    "address": null,
+    "phone": null,
+    "description": "Päihde-, mielenterveys-, asumis-, työllisyys- ja nuorisotyötä.",
+    "lat": null,
+    "lng": null
+  },
+  {
+    "category": "TAMPEREELLA TOIMIVAT MIELENTERVEYS- JA PÄIHDEJÄRJESTÖT",
+    "name": "Nauha ry – Kohtaamispaikka Callio",
+    "address": null,
+    "phone": null,
+    "description": "Matalan kynnyksen kohtaamispaikka.",
+    "lat": null,
+    "lng": null
+  },
+  {
+    "category": "TAMPEREELLA TOIMIVAT MIELENTERVEYS- JA PÄIHDEJÄRJESTÖT",
+    "name": "Nauha ry – Mukana",
+    "address": null,
+    "phone": null,
+    "description": "Osallisuutta ja yhteisöllistä toimintaa.",
+    "lat": null,
+    "lng": null
+  },
+  {
+    "category": "TAMPEREELLA TOIMIVAT MIELENTERVEYS- JA PÄIHDEJÄRJESTÖT",
+    "name": "Nauha ry – Kaukajärven toiminta",
+    "address": null,
+    "phone": null,
+    "description": "Alueellista kohtaamis- ja ryhmätoimintaa.",
+    "lat": null,
+    "lng": null
+  },
+  {
+    "category": "TAMPEREELLA TOIMIVAT MIELENTERVEYS- JA PÄIHDEJÄRJESTÖT",
+    "name": "Nauha ry – Kartanolla kohdataan",
+    "address": null,
+    "phone": null,
+    "description": "Kohtaamispaikka- ja yhteisötoimintaa.",
+    "lat": null,
+    "lng": null
+  },
+  {
+    "category": "TAMPEREELLA TOIMIVAT MIELENTERVEYS- JA PÄIHDEJÄRJESTÖT",
+    "name": "Nauha+",
+    "address": null,
+    "phone": null,
+    "description": "Tukea ja toimintaa päihde- ja mielenterveysongelmia kokeville.",
+    "lat": null,
+    "lng": null
+  },
+  {
+    "category": "TAMPEREELLA TOIMIVAT MIELENTERVEYS- JA PÄIHDEJÄRJESTÖT",
+    "name": "Nouseva mieli – Suomen skitsofreniayhdistys ry",
+    "address": null,
+    "phone": null,
+    "description": "Tietoa, vertaistukea ja toimintaa skitsofreniaan sairastuneille ja heidän läheisilleen.",
+    "lat": null,
+    "lng": null
+  },
+  {
+    "category": "TAMPEREELLA TOIMIVAT MIELENTERVEYS- JA PÄIHDEJÄRJESTÖT",
+    "name": "Pirkanmaan Mielenterveys ry",
+    "address": null,
+    "phone": null,
+    "description": "Mielenterveyden edistämistä, kriisiauttamista ja vapaaehtoistoimintaa. Ylläpitää Kriisikeskus Osviittaa.",
+    "lat": null,
+    "lng": null
+  },
+  {
+    "category": "TAMPEREELLA TOIMIVAT MIELENTERVEYS- JA PÄIHDEJÄRJESTÖT",
+    "name": "Pirkanmaan päihde- ja mielenterveysjärjestöjen verkosto PäMi",
+    "address": null,
+    "phone": null,
+    "description": "Pirkanmaan alueen päihde- ja mielenterveysjärjestöjen yhteistyöverkosto.",
+    "lat": null,
+    "lng": null
+  },
+  {
+    "category": "TAMPEREELLA TOIMIVAT MIELENTERVEYS- JA PÄIHDEJÄRJESTÖT",
+    "name": "Pirkanmaan päihdepalvelujärjestöt ry",
+    "address": null,
+    "phone": null,
+    "description": "Päihdetyötä tekevien järjestöjen yhteistyötä ja edunvalvontaa.",
+    "lat": null,
+    "lng": null
+  },
+  {
+    "category": "TAMPEREELLA TOIMIVAT MIELENTERVEYS- JA PÄIHDEJÄRJESTÖT",
+    "name": "Pro-tukipiste Tampere",
+    "address": "Aleksis Kiven katu 10 E 55, Tampere",
+    "phone": "045 265 0480",
+    "description": "Puhelin: 045 265 0480. Matalan kynnyksen sosiaali- ja terveyspalveluja seksi- ja erotiikka-alalla työskenteleville sekä ihmiskaupan uhreille.",
+    "lat": 61.5000422,
+    "lng": 23.7592493
+  },
+  {
+    "category": "TAMPEREELLA TOIMIVAT MIELENTERVEYS- JA PÄIHDEJÄRJESTÖT",
+    "name": "Rikoksettoman elämän tukisäätiö RETS",
+    "address": null,
+    "phone": null,
+    "description": "Tukea rikostaustaisille ja heidän läheisilleen, asumisen neuvontaa ja rikoksettomaan elämään kiinnittymistä.",
+    "lat": null,
+    "lng": null
+  },
+  {
+    "category": "TAMPEREELLA TOIMIVAT MIELENTERVEYS- JA PÄIHDEJÄRJESTÖT",
+    "name": "Setlementti Tampere ry",
+    "address": null,
+    "phone": null,
+    "description": "Yhteisö-, nuoriso-, väkivalta-, maahanmuuttaja- ja kansalaistoimintaa.",
+    "lat": null,
+    "lng": null
+  },
+  {
+    "category": "TAMPEREELLA TOIMIVAT MIELENTERVEYS- JA PÄIHDEJÄRJESTÖT",
+    "name": "Setlementti Tampere – Omavoima",
+    "address": null,
+    "phone": null,
+    "description": "Tukea neurokirjon aikuisille ja heidän läheisilleen.",
+    "lat": null,
+    "lng": null
+  },
+  {
+    "category": "TAMPEREELLA TOIMIVAT MIELENTERVEYS- JA PÄIHDEJÄRJESTÖT",
+    "name": "Setlementti Tampere – Naistari",
+    "address": null,
+    "phone": null,
+    "description": "Monikulttuurinen kohtaamispaikka naisille.",
+    "lat": null,
+    "lng": null
+  },
+  {
+    "category": "TAMPEREELLA TOIMIVAT MIELENTERVEYS- JA PÄIHDEJÄRJESTÖT",
+    "name": "Setlementti Tampere – Mattila",
+    "address": null,
+    "phone": null,
+    "description": "Kansainvälinen kohtaamispaikka miehille ja pojille.",
+    "lat": null,
+    "lng": null
+  },
+  {
+    "category": "TAMPEREELLA TOIMIVAT MIELENTERVEYS- JA PÄIHDEJÄRJESTÖT",
+    "name": "Setlementti Tampere – Wihreä Puu",
+    "address": null,
+    "phone": null,
+    "description": "Yhteisöllinen kohtaamispaikka Hervannassa.",
+    "lat": null,
+    "lng": null
+  },
+  {
+    "category": "TAMPEREELLA TOIMIVAT MIELENTERVEYS- JA PÄIHDEJÄRJESTÖT",
+    "name": "Setlementti Tampere – Tyttöjen Talo",
+    "address": null,
+    "phone": null,
+    "description": "Tukea ja toimintaa tytöille ja nuorille naisille.",
+    "lat": null,
+    "lng": null
+  },
+  {
+    "category": "TAMPEREELLA TOIMIVAT MIELENTERVEYS- JA PÄIHDEJÄRJESTÖT",
+    "name": "Setlementti Tampere – Kiusatut",
+    "address": null,
+    "phone": null,
+    "description": "Apua kiusaamista kokeneille.",
+    "lat": null,
+    "lng": null
+  },
+  {
+    "category": "TAMPEREELLA TOIMIVAT MIELENTERVEYS- JA PÄIHDEJÄRJESTÖT",
+    "name": "Setlementti Tampereen väkivaltatyö",
+    "address": null,
+    "phone": null,
+    "description": "Apua lähisuhdeväkivallan eri osapuolille.",
+    "lat": null,
+    "lng": null
+  },
+  {
+    "category": "TAMPEREELLA TOIMIVAT MIELENTERVEYS- JA PÄIHDEJÄRJESTÖT",
+    "name": "Silta-Valmennusyhdistys ry",
+    "address": null,
+    "phone": null,
+    "description": "Päihde- ja rikostaustaisten kuntoutusta, asumisen tukea, työ- ja yksilövalmennusta sekä nuorten palveluja.",
+    "lat": null,
+    "lng": null
+  },
+  {
+    "category": "TAMPEREELLA TOIMIVAT MIELENTERVEYS- JA PÄIHDEJÄRJESTÖT",
+    "name": "Silta – KEIJO-kokemusasiantuntijakoulutus",
+    "address": null,
+    "phone": null,
+    "description": "Rikos- ja päihdetaustaisille tarkoitettua kokemusasiantuntijakoulutusta.",
+    "lat": null,
+    "lng": null
+  },
+  {
+    "category": "TAMPEREELLA TOIMIVAT MIELENTERVEYS- JA PÄIHDEJÄRJESTÖT",
+    "name": "Sopimusvuori ry",
+    "address": null,
+    "phone": null,
+    "description": "Mielenterveys- ja päihdetyötä, sosiaalista kuntoutusta, työtoimintaa ja klubitalotoimintaa.",
+    "lat": null,
+    "lng": null
+  },
+  {
+    "category": "TAMPEREELLA TOIMIVAT MIELENTERVEYS- JA PÄIHDEJÄRJESTÖT",
+    "name": "Näsinkulman Klubitalo",
+    "address": null,
+    "phone": null,
+    "description": "Sopimusvuori ry:n yhteisö ja työpainotteinen kuntoutumisympäristö mielenterveyskuntoutujille.",
+    "lat": null,
+    "lng": null
+  },
+  {
+    "category": "TAMPEREELLA TOIMIVAT MIELENTERVEYS- JA PÄIHDEJÄRJESTÖT",
+    "name": "Sosped-säätiö",
+    "address": null,
+    "phone": null,
+    "description": "Kulttuuriin, vertaistukeen ja sosiaaliseen osallisuuteen perustuvaa toimintaa.",
+    "lat": null,
+    "lng": null
+  },
+  {
+    "category": "TAMPEREELLA TOIMIVAT MIELENTERVEYS- JA PÄIHDEJÄRJESTÖT",
+    "name": "Kulttuuripaja Virta",
+    "address": null,
+    "phone": null,
+    "description": "Luovaa ryhmä- ja vertaistoimintaa nuorille aikuisille, joilla on kokemuksia mielenterveyden ongelmista.",
+    "lat": null,
+    "lng": null
+  },
+  {
+    "category": "TAMPEREELLA TOIMIVAT MIELENTERVEYS- JA PÄIHDEJÄRJESTÖT",
+    "name": "Hölläämö",
+    "address": null,
+    "phone": null,
+    "description": "Sosped-säätiön yhteisöllistä ja hyvinvointia tukevaa toimintaa.",
+    "lat": null,
+    "lng": null
+  },
+  {
+    "category": "TAMPEREELLA TOIMIVAT MIELENTERVEYS- JA PÄIHDEJÄRJESTÖT",
+    "name": "Pelirajaton",
+    "address": null,
+    "phone": null,
+    "description": "Vertaistukea ongelmallisesti rahapelaaville ja heidän läheisilleen.",
+    "lat": null,
+    "lng": null
+  },
+  {
+    "category": "TAMPEREELLA TOIMIVAT MIELENTERVEYS- JA PÄIHDEJÄRJESTÖT",
+    "name": "Syömishäiriöliitto SYLI ry",
+    "address": null,
+    "phone": null,
+    "description": "Neuvontaa, vertaistukea ja toimintaa syömishäiriötä sairastaville, oireileville ja läheisille.",
+    "lat": null,
+    "lng": null
+  },
+  {
+    "category": "TAMPEREELLA TOIMIVAT MIELENTERVEYS- JA PÄIHDEJÄRJESTÖT",
+    "name": "Taimi ry",
+    "address": "Koulukatu 11, Tampere",
+    "phone": null,
+    "description": "Mielenterveysyhdistys, joka järjestää kohtaamispaikka-, vertaisryhmä- ja virkistystoimintaa.",
+    "lat": 61.4936204,
+    "lng": 23.7484051
+  },
+  {
+    "category": "TAMPEREELLA TOIMIVAT MIELENTERVEYS- JA PÄIHDEJÄRJESTÖT",
+    "name": "Tampereen A-kilta ry",
+    "address": null,
+    "phone": null,
+    "description": "Päihteetöntä vertaistukea, kuntoutusta, asumisen tukea ja kohtaamispaikkatoimintaa.",
+    "lat": null,
+    "lng": null
+  },
+  {
+    "category": "TAMPEREELLA TOIMIVAT MIELENTERVEYS- JA PÄIHDEJÄRJESTÖT",
+    "name": "Tampereen A-kilta – Kartanotupa",
+    "address": null,
+    "phone": null,
+    "description": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "category": "TAMPEREELLA TOIMIVAT MIELENTERVEYS- JA PÄIHDEJÄRJESTÖT",
+    "name": "Tampereen A-kilta – Hervannan yhdyskuntatupa",
+    "address": null,
+    "phone": null,
+    "description": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "category": "TAMPEREELLA TOIMIVAT MIELENTERVEYS- JA PÄIHDEJÄRJESTÖT",
+    "name": "Tampereen A-kilta – Härmälätupa",
+    "address": null,
+    "phone": null,
+    "description": null,
+    "lat": null,
+    "lng": null
+  },
+  {
+    "category": "TAMPEREELLA TOIMIVAT MIELENTERVEYS- JA PÄIHDEJÄRJESTÖT",
+    "name": "Tampereen ensi- ja turvakoti ry",
+    "address": null,
+    "phone": null,
+    "description": "Apua lähisuhdeväkivaltaan, perhekriiseihin, vauva- ja lapsiperheiden ongelmiin sekä turvallisen asumisen tarpeeseen.",
+    "lat": null,
+    "lng": null
+  },
+  {
+    "category": "TAMPEREELLA TOIMIVAT MIELENTERVEYS- JA PÄIHDEJÄRJESTÖT",
+    "name": "Valo-Valmennusyhdistys ry",
+    "address": null,
+    "phone": null,
+    "description": "Päihdekuntoutusta, asumisen tukea, työpajoja, valmennusta ja nuorten Starttipaja-toimintaa.",
+    "lat": null,
+    "lng": null
+  },
+  {
+    "category": "TAMPEREELLA TOIMIVAT MIELENTERVEYS- JA PÄIHDEJÄRJESTÖT",
+    "name": "ViaDia Pirkanmaa ry",
+    "address": null,
+    "phone": null,
+    "description": "Ruoka-apua, kohtaamispaikkoja, asunnottomuustyötä, päihdetyötä ja kuntouttavaa työtoimintaa.",
+    "lat": null,
+    "lng": null
+  },
+  {
+    "category": "TAMPEREELLA TOIMIVAT MIELENTERVEYS- JA PÄIHDEJÄRJESTÖT",
+    "name": "YAD Youth Against Drugs ry",
+    "address": null,
+    "phone": null,
+    "description": "Nuorten ehkäisevää huumetyötä, vertaistoimintaa, vapaaehtoistoimintaa ja huumeisiin liittyvää neuvontaa.",
+    "lat": null,
+    "lng": null
+  },
+  {
+    "category": "VERTAISTUKIRYHMÄT TAMPEREELLA",
+    "name": "AA – Nimettömät Alkoholistit",
+    "address": null,
+    "phone": null,
+    "description": "Vertaistukiryhmiä ihmisille, jotka haluavat lopettaa alkoholin käytön.",
+    "lat": null,
+    "lng": null
+  },
+  {
+    "category": "VERTAISTUKIRYHMÄT TAMPEREELLA",
+    "name": "NA – Nimettömät Narkomaanit",
+    "address": null,
+    "phone": null,
+    "description": "Vertaistukiryhmiä ihmisille, joille huumeiden tai muiden päihteiden käytöstä on muodostunut ongelma.",
+    "lat": null,
+    "lng": null
+  },
+  {
+    "category": "VERTAISTUKIRYHMÄT TAMPEREELLA",
+    "name": "Al-Anon",
+    "address": null,
+    "phone": null,
+    "description": "Vertaistukea ihmisille, joiden läheisen alkoholin käyttö aiheuttaa huolta tai haittaa.",
+    "lat": null,
+    "lng": null
+  },
+  {
+    "category": "VERTAISTUKIRYHMÄT TAMPEREELLA",
+    "name": "Nar-Anon",
+    "address": null,
+    "phone": null,
+    "description": "Vertaistukea huumeita käyttävien ihmisten läheisille.",
+    "lat": null,
+    "lng": null
+  },
+  {
+    "category": "VERTAISTUKIRYHMÄT TAMPEREELLA",
+    "name": "ACA / AAL – Alkoholistien aikuiset lapset",
+    "address": null,
+    "phone": null,
+    "description": "Vertaistukea ihmisille, jotka ovat kasvaneet alkoholismista tai muusta perheen toimintahäiriöstä kärsineessä ympäristössä.",
+    "lat": null,
+    "lng": null
+  },
+  {
+    "category": "VERTAISTUKIRYHMÄT TAMPEREELLA",
+    "name": "GA / Nimettömät Pelurit",
+    "address": null,
+    "phone": null,
+    "description": "Vertaistukea rahapeliongelmasta toipuville.",
+    "lat": null,
+    "lng": null
+  },
+  {
+    "category": "VERTAISTUKIRYHMÄT TAMPEREELLA",
+    "name": "Pelirajaton",
+    "address": null,
+    "phone": null,
+    "description": "Vertaistukea ongelmallisesti rahapelaaville ja heidän läheisilleen.",
+    "lat": null,
+    "lng": null
+  },
+  {
+    "category": "VERTAISTUKIRYHMÄT TAMPEREELLA",
+    "name": "Irti Huumeista ry:n läheisryhmät",
+    "address": null,
+    "phone": null,
+    "description": "Vertaistukea huumeita käyttävien ihmisten vanhemmille, puolisoille, sisaruksille ja muille läheisille.",
+    "lat": null,
+    "lng": null
+  },
+  {
+    "category": "VERTAISTUKIRYHMÄT TAMPEREELLA",
+    "name": "KRIS-Tampereen vertaisryhmät",
+    "address": null,
+    "phone": null,
+    "description": "Päihde- ja rikostaustaisille sekä vankilasta vapautuville.",
+    "lat": null,
+    "lng": null
+  },
+  {
+    "category": "VERTAISTUKIRYHMÄT TAMPEREELLA",
+    "name": "FinFami Pirkanmaan vertaisryhmät",
+    "address": null,
+    "phone": null,
+    "description": "Mielenterveys- tai päihdeongelmia kokevien ihmisten läheisille.",
+    "lat": null,
+    "lng": null
+  },
+  {
+    "category": "VERTAISTUKIRYHMÄT TAMPEREELLA",
+    "name": "Syömishäiriöliiton vertaistukiryhmät",
+    "address": null,
+    "phone": null,
+    "description": "Syömishäiriötä sairastaville, oireileville ja heidän läheisilleen.",
+    "lat": null,
+    "lng": null
+  },
+  {
+    "category": "VERTAISTUKIRYHMÄT TAMPEREELLA",
+    "name": "Tampereen A-killan vertaisryhmät",
+    "address": null,
+    "phone": null,
+    "description": "Päihteettömään elämään pyrkiville ja päihteistä toipuville.",
+    "lat": null,
+    "lng": null
+  },
+  {
+    "category": "VERTAISTUKIRYHMÄT TAMPEREELLA",
+    "name": "Mielenterveyden keskusliiton vertaisryhmät",
+    "address": null,
+    "phone": null,
+    "description": "Mielenterveysongelmia kokeneille ja kuntoutujille.",
+    "lat": null,
+    "lng": null
+  },
+  {
+    "category": "VERTAISTUKIRYHMÄT TAMPEREELLA",
+    "name": "Taimi ry:n vertaisryhmät",
+    "address": null,
+    "phone": null,
+    "description": "Mielenterveyskuntoutujille ja muille mielenterveyden haasteita kokeneille.",
+    "lat": null,
+    "lng": null
+  },
+  {
+    "category": "PUHELIN- JA VERKKOPALVELUT",
+    "name": "MIELI Kriisipuhelin",
+    "address": null,
+    "phone": null,
+    "description": "09 2525 0111, ympäri vuorokauden.",
+    "lat": null,
+    "lng": null
+  },
+  {
+    "category": "PUHELIN- JA VERKKOPALVELUT",
+    "name": "EHYT Päihdeneuvonta",
+    "address": null,
+    "phone": "0800 900 45",
+    "description": "0800 900 45, maksuton ja anonyymi, ympäri vuorokauden.",
+    "lat": null,
+    "lng": null
+  },
+  {
+    "category": "PUHELIN- JA VERKKOPALVELUT",
+    "name": "Pirkanmaan Päivystysapu",
+    "address": null,
+    "phone": null,
+    "description": "116 117.",
+    "lat": null,
+    "lng": null
+  },
+  {
+    "category": "PUHELIN- JA VERKKOPALVELUT",
+    "name": "Nollalinja",
+    "address": null,
+    "phone": null,
+    "description": "116 016, ympäri vuorokauden.",
+    "lat": null,
+    "lng": null
+  },
+  {
+    "category": "PUHELIN- JA VERKKOPALVELUT",
+    "name": "Peluuri",
+    "address": null,
+    "phone": "0800 100 101",
+    "description": "0800 100 101. Apua rahapelaamiseen, digipelaamiseen ja läheisten tilanteisiin.",
+    "lat": null,
+    "lng": null
+  },
+  {
+    "category": "PUHELIN- JA VERKKOPALVELUT",
+    "name": "Mielenterveystalo",
+    "address": null,
+    "phone": null,
+    "description": "Omahoito-ohjelmia, oirekyselyitä, palveluohjausta ja tietoa mielenterveydestä.",
+    "lat": null,
+    "lng": null
+  },
+  {
+    "category": "PUHELIN- JA VERKKOPALVELUT",
+    "name": "Päihdelinkki",
+    "address": null,
+    "phone": null,
+    "description": "Tietoa päihteistä ja riippuvuuksista, testejä, omahoitoa, neuvontaa ja vertaistukea.",
+    "lat": null,
+    "lng": null
+  },
+  {
+    "category": "PUHELIN- JA VERKKOPALVELUT",
+    "name": "Nuortenlinkki",
+    "address": null,
+    "phone": null,
+    "description": "Nuorille tarkoitettua tietoa, neuvontaa ja keskustelupalveluja päihteistä, mielenterveydestä ja elämäntilanteista.",
+    "lat": null,
+    "lng": null
+  },
+  {
+    "category": "PUHELIN- JA VERKKOPALVELUT",
+    "name": "Sekasin-chat",
+    "address": null,
+    "phone": null,
+    "description": "Anonyymi keskustelupalvelu 12–29-vuotiaille.",
+    "lat": null,
+    "lng": null
+  },
+  {
+    "category": "PUHELIN- JA VERKKOPALVELUT",
+    "name": "Solmussa-chat",
+    "address": null,
+    "phone": null,
+    "description": "MIELI ry:n keskusteluapua täysi-ikäisille.",
+    "lat": null,
+    "lng": null
+  },
+  {
+    "category": "PUHELIN- JA VERKKOPALVELUT",
+    "name": "Tukinet",
+    "address": null,
+    "phone": null,
+    "description": "Kriisi-, mielenterveys- ja vertaistukichatteja sekä ryhmäkeskusteluja.",
+    "lat": null,
+    "lng": null
+  }
+]

@@ -76,7 +76,7 @@ export default async function KierrosPage({
 
       {canEdit && (
         <form action={boundDelete} className="mt-4">
-          <button type="submit" className="text-sm text-accent underline">
+          <button type="submit" className="text-sm text-danger underline">
             Poista kierros
           </button>
         </form>

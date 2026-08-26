@@ -7,8 +7,20 @@
  */
 import { PrismaClient } from "@prisma/client";
 import bcrypt from "bcryptjs";
+import { readFileSync } from "fs";
+import path from "path";
 
 const prisma = new PrismaClient();
+
+type DirectoryEntry = {
+  category: string;
+  name: string;
+  address: string | null;
+  phone: string | null;
+  description: string | null;
+  lat: number | null;
+  lng: number | null;
+};
 
 const DEMO_PASSWORD = "kayttajayhteiso2026";
 
@@ -65,6 +77,7 @@ async function main() {
       socialInfo: "@tampereenkayttajayhteiso",
       backPageText:
         "**Haittojen vähentäminen:**\n\n- Älä käytä yksin.\n- Naloksoni pelastaa hengen yliannostuksessa.\n- Terveysneuvontapisteistä saa puhtaita välineitä maksutta.\n",
+      logoPath: "/branding/logo.jpeg",
     },
   });
 
@@ -217,6 +230,23 @@ async function main() {
       sortOrder: 2,
     },
   });
+
+  const directoryPath = path.join(__dirname, "data", "services.json");
+  const directory: DirectoryEntry[] = JSON.parse(readFileSync(directoryPath, "utf-8"));
+  for (const entry of directory) {
+    await prisma.directoryService.upsert({
+      where: { category_name: { category: entry.category, name: entry.name } },
+      update: {
+        address: entry.address,
+        phone: entry.phone,
+        description: entry.description,
+        lat: entry.lat,
+        lng: entry.lng,
+      },
+      create: entry,
+    });
+  }
+  console.log(`Palveluhakemisto: ${directory.length} kohdetta (${directory.filter((d) => d.lat).length} kartalla).`);
 
   console.log("Seed valmis.");
   console.log(`Kirjaudu osoitteessa /kirjaudu, salasana kaikille demo-tileille: ${DEMO_PASSWORD}`);

@@ -35,6 +35,7 @@ export default async function DashboardPage() {
           <div className="flex flex-wrap gap-3 text-sm">
             <Link href="/admin/viikkolehti" className="underline">Viikkolehdet</Link>
             <Link href="/admin/kayttajat" className="underline">Käyttäjät</Link>
+            <Link href="/admin/kokemukset" className="underline">Kokemukset</Link>
             <Link href="/admin/asetukset" className="underline">Asetukset</Link>
           </div>
         </section>

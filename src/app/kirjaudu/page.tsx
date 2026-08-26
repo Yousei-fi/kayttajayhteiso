@@ -39,7 +39,7 @@ export default function KirjauduPage() {
         </label>
 
         {state.error && (
-          <p className="rounded bg-red-50 px-3 py-2 text-sm text-accent">{state.error}</p>
+          <p className="rounded bg-red-50 px-3 py-2 text-sm text-danger">{state.error}</p>
         )}
 
         <button

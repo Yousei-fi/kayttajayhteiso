@@ -85,22 +85,34 @@ The one exception is `public/branding/` (see below) — that's a build-time asse
 
 ## Branding
 
-Placeholder branding lives in `public/branding/` (a generic two-circle mark). To use the real Tampereen Käyttäjäyhteisö logo:
+The real Tampereen Käyttäjäyhteisö logo lives at `public/branding/logo.jpeg`. The site's color palette (`src/app/globals.css`) and the zine's print template (`src/lib/zine-html.ts`) are both sampled from it — purple `#7137e3`, blue `#2f8fe0`, magenta `#d356ef`. To replace it with an updated file:
 
-1. Drop the file into `public/branding/`.
+1. Drop the new file into `public/branding/`.
 2. Set its path in `/admin/asetukset` ("Logon polku").
 3. Redeploy / restart the server (see the note above on why).
 
 The same admin settings page also holds the org description, contact/social info, and the zine's back-page text (Markdown) — the recurring harm-reduction blurb, contact details, etc. shown on the printed back cover and the public `/tietoa` page.
 
+## Tampereen palvelut (public service directory + map)
+
+A separate, much simpler feature from alerts/articles/zine: a public, no-login directory of Tampere drug/mental-health services at `/palvelut`, sourced from a hand-maintained list rather than anything services manage themselves. Each entry can have an anonymous public note attached — deliberately called **"Kokemus"** (experience), not "comment" — capped at 300 characters, no account or author field at all.
+
+- **Data source**: `prisma/data/services-source.txt` (copied from the old project's `services.txt`) is parsed by `scripts/build-services-data.mjs` into `prisma/data/services.json`, which `prisma/seed.ts` reads to upsert `DirectoryService` rows (idempotent on `category` + `name`, so re-seeding never duplicates them).
+- **Geocoding**: `scripts/geocode-services.mjs` fills in `lat`/`lng` for entries that have an address, using OpenStreetMap's free Nominatim API (no key needed). This is a **one-time build step**, not something the running app calls — re-run it manually only if `services-source.txt` changes, respecting Nominatim's ~1 request/second usage policy (already built into the script).
+- **Map**: `src/components/service-map.tsx` renders Leaflet + OpenStreetMap tiles (also free, no API key) with simple CSS dot markers, client-side only.
+- **Kokemukset**: `src/app/palvelut/[id]/actions.ts` lets anyone post one, with a server-side 300-character cap and tag-stripping — deliberately no CAPTCHA or rate limiting for this MVP (see "Known limitations"). Admins can delete individual ones at `/admin/kokemukset`, the only moderation this needs for now.
+
+Only 16 of the ~122 parsed entries have a street address (and therefore a map pin) — most of the source list is phone lines, peer-support groups, or organizations without a single physical address. That's a property of the source data, not a parsing bug.
+
 ## Project layout
 
 ```
-prisma/                   schema, migrations, seed script
+prisma/                   schema, migrations, seed script, data/ (service directory source + parsed JSON)
+scripts/                  one-time data build steps (parse services.txt, geocode addresses)
 src/lib/                  db client, auth, markdown, zine sync, zine HTML template, PDF rendering, uploads
-src/components/           small shared UI (site header, markdown editor)
-src/app/                  public pages, /kirjaudu, /dashboard/*, /admin/*, /uploads/[...path]
-public/branding/          logo placeholder + replacement instructions
+src/components/           small shared UI (site header, markdown editor, service map)
+src/app/                  public pages, /palvelut/*, /kirjaudu, /dashboard/*, /admin/*, /uploads/[...path]
+public/branding/          logo + replacement instructions
 ```
 
 ## Deployment
@@ -133,3 +145,5 @@ Either way, a single container (Next.js + Puppeteer/Chromium) and one named volu
 - No email sending anywhere — admins set initial passwords directly, no invite emails or password-reset flow. Fine for a handful of manually-managed accounts.
 - No public self-registration for members or services, by design (see "Accounts and roles" above).
 - Prisma is pinned to the 6.x line rather than 7.x, which changed how datasource URLs are configured (driver adapters instead of a plain `url = env(...)` in the schema). 6.x's config is simpler and better documented; a future upgrade is a good idea once that model settles, but wasn't worth the added moving parts here.
+- Anonymous "Kokemus" posts on `/palvelut` have no CAPTCHA and no rate limiting — only a server-side 300-character cap and admin delete at `/admin/kokemukset`. Acceptable at expected traffic; revisit if the feature gets abused.
+- The service directory (`DirectoryService`) has no admin edit UI yet — it's maintained by re-running the parse/geocode scripts against an updated `services-source.txt`, or by hand via `npx prisma studio`. Fine for a source list that changes rarely; worth building a proper editor if that stops being true.

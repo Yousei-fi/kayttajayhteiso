@@ -73,6 +73,18 @@ export default async function HomePage() {
         </ul>
       </section>
 
+      <section className="mb-10 rounded-lg border border-line bg-paper p-6">
+        <p className="text-xs font-semibold uppercase tracking-wide text-accent-2">Uutta</p>
+        <h2 className="mt-1 text-xl font-bold">Tampereen palvelut</h2>
+        <p className="mt-2 text-sm text-muted">
+          Selaa Tampereen päihde- ja mielenterveyspalveluita, katso niiden sijainnit kartalla ja lue muiden
+          jättämiä kokemuksia.
+        </p>
+        <Link href="/palvelut" className="mt-3 inline-block text-sm text-accent-2 underline">
+          Avaa Tampereen palvelut
+        </Link>
+      </section>
+
       <section>
         <Link href="/viikkolehti/arkisto" className="text-sm text-accent-2 underline">
           Selaa aiempia viikkolehtiä

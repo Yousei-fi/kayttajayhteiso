@@ -17,7 +17,7 @@ export default async function MuokkaaIlmoitustaPage({
   const alert = await prisma.alert.findUnique({ where: { id } });
   if (!alert) notFound();
   if (user.role !== "ADMIN" && alert.serviceUserId !== user.id) {
-    return <p className="text-sm text-accent">Ei oikeutta muokata tätä ilmoitusta.</p>;
+    return <p className="text-sm text-danger">Ei oikeutta muokata tätä ilmoitusta.</p>;
   }
 
   const boundUpdate = updateAlert.bind(null, alert.id);
@@ -63,7 +63,7 @@ export default async function MuokkaaIlmoitustaPage({
           </form>
         )}
         <form action={deleteAlert.bind(null, alert.id)}>
-          <button type="submit" className="text-accent underline">Poista</button>
+          <button type="submit" className="text-danger underline">Poista</button>
         </form>
       </div>
     </div>

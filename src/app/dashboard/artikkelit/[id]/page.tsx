@@ -85,7 +85,7 @@ export default async function MuokkaaArtikkeliaPage({
 
       {canEdit && (
         <form action={boundDelete} className="mt-6">
-          <button type="submit" className="text-sm text-accent underline">
+          <button type="submit" className="text-sm text-danger underline">
             Poista artikkeli
           </button>
         </form>

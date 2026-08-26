@@ -136,19 +136,19 @@ export function buildZineHtml(params: {
 function zineCss(mode: "preview" | "print"): string {
   return `
     :root {
-      --ink: #201a17;
-      --accent: #d1495b;
-      --accent-2: #2a9d8f;
-      --paper: #fffdf8;
-      --muted: #6b5f57;
-      --line: #e4d9cd;
+      --ink: #1e1b29;
+      --accent: #7137e3;
+      --accent-2: #2f8fe0;
+      --paper: #fffdfe;
+      --muted: #6b6478;
+      --line: #e3ddf0;
     }
     * { box-sizing: border-box; }
     body {
       margin: 0;
       font-family: "Georgia", "Iowan Old Style", serif;
       color: var(--ink);
-      background: ${mode === "preview" ? "#e9e2d8" : "var(--paper)"};
+      background: ${mode === "preview" ? "#e3ddef" : "var(--paper)"};
     }
     .sheet {
       background: var(--paper);

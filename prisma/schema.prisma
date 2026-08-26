@@ -145,5 +145,40 @@ model SiteSettings {
   contactInfo   String @default("")
   socialInfo    String @default("")
   backPageText  String @default("")
-  logoPath      String @default("/branding/logo-placeholder.svg")
+  logoPath      String @default("/branding/logo.jpeg")
+}
+
+/// A directory entry for the public "Tampereen palvelut" service map,
+/// sourced from a hand-maintained list of local services (see
+/// prisma/data/). Not the same thing as a service Account/Alert — this is
+/// reference info anyone can browse, with no login involved.
+model DirectoryService {
+  id          String   @id @default(cuid())
+  category    String
+  name        String
+  address     String?
+  phone       String?
+  description String?
+  lat         Float?
+  lng         Float?
+  createdAt   DateTime @default(now())
+
+  experiences ServiceExperience[]
+
+  @@unique([category, name])
+}
+
+/// An anonymous short public note ("Kokemus") about a DirectoryService.
+/// No account, no author field by design — this is deliberately
+/// lightweight, moderated only after the fact by an admin.
+model ServiceExperience {
+  id        String   @id @default(cuid())
+  serviceId String
+  body      String
+  createdAt DateTime @default(now())
+
+  service DirectoryService @relation(fields: [serviceId], references: [id], onDelete: Cascade)
+
+  @@index([serviceId])
+  @@index([createdAt])
 }

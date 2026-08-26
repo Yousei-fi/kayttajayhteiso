@@ -18,12 +18,15 @@ export default async function AdminHomePage() {
         </Link>
       </section>
 
-      <div className="grid gap-4 sm:grid-cols-3">
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <Link href="/admin/kayttajat" className="rounded border border-line bg-paper p-4 font-semibold hover:border-accent-2">
           Käyttäjät
         </Link>
         <Link href="/admin/viikkolehti" className="rounded border border-line bg-paper p-4 font-semibold hover:border-accent-2">
           Viikkolehtien arkisto
+        </Link>
+        <Link href="/admin/kokemukset" className="rounded border border-line bg-paper p-4 font-semibold hover:border-accent-2">
+          Kokemukset (Tampereen palvelut)
         </Link>
         <Link href="/admin/asetukset" className="rounded border border-line bg-paper p-4 font-semibold hover:border-accent-2">
           Asetukset ja brändäys

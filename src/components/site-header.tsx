@@ -8,10 +8,18 @@ export async function SiteHeader() {
   return (
     <header className="border-b border-line bg-paper">
       <div className="mx-auto flex max-w-4xl items-center justify-between px-4 py-3">
-        <Link href="/" className="text-lg font-bold">
+        <Link href="/" className="flex items-center gap-2 text-lg font-bold">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src="/branding/logo.jpeg" alt="" className="h-8 w-8 rounded object-cover" />
           Tampereen Käyttäjäyhteisö
+          <span className="rounded bg-yellow-300 px-1.5 py-0.5 text-[10px] font-bold tracking-wide text-black">
+            BETA
+          </span>
         </Link>
         <nav className="flex items-center gap-4 text-sm">
+          <Link href="/palvelut" className="hover:underline">
+            Tampereen palvelut
+          </Link>
           <Link href="/viikkolehti" className="hover:underline">
             Viikkolehti
           </Link>
