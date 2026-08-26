@@ -17,23 +17,23 @@ export async function SiteHeader() {
           </span>
         </Link>
         <nav className="flex items-center gap-4 text-sm">
+          <Link href="/tietoa" className="hover:underline">
+            Tietoa meistä
+          </Link>
+          <Link href="/ilmoitukset" className="hover:underline">
+            Ilmoitukset
+          </Link>
+          <Link href="/artikkelit" className="hover:underline">
+            Artikkelit
+          </Link>
+          <Link href="/viikkolehti" className="hover:underline">
+            Viikkolehti
+          </Link>
           <Link href="/palvelut" className="hover:underline">
             Tampereen palvelut
           </Link>
           <Link href="/na-ryhmat" className="hover:underline">
             Tampereen NA-ryhmät
-          </Link>
-          <Link href="/viikkolehti" className="hover:underline">
-            Viikkolehti
-          </Link>
-          <Link href="/artikkelit" className="hover:underline">
-            Artikkelit
-          </Link>
-          <Link href="/ilmoitukset" className="hover:underline">
-            Ilmoitukset
-          </Link>
-          <Link href="/tietoa" className="hover:underline">
-            Tietoa
           </Link>
           {user ? (
             <>

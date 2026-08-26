@@ -12,6 +12,7 @@ export async function updateSiteSettings(formData: FormData): Promise<void> {
     update: {
       orgName: String(formData.get("orgName") ?? "").trim(),
       description: String(formData.get("description") ?? "").trim(),
+      aboutText: String(formData.get("aboutText") ?? "").trim(),
       contactInfo: String(formData.get("contactInfo") ?? "").trim(),
       socialInfo: String(formData.get("socialInfo") ?? "").trim(),
       backPageText: String(formData.get("backPageText") ?? "").trim(),
@@ -22,5 +23,6 @@ export async function updateSiteSettings(formData: FormData): Promise<void> {
 
   revalidatePath("/admin/asetukset");
   revalidatePath("/");
+  revalidatePath("/tietoa");
   revalidatePath("/viikkolehti");
 }

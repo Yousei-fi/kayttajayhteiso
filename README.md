@@ -91,7 +91,15 @@ The real Tampereen Käyttäjäyhteisö logo lives at `public/branding/logo.jpeg`
 2. Set its path in `/admin/asetukset` ("Logon polku").
 3. Redeploy / restart the server (see the note above on why).
 
-The same admin settings page also holds the org description, contact/social info, and the zine's back-page text (Markdown) — the recurring harm-reduction blurb, contact details, etc. shown on the printed back cover and the public `/tietoa` page.
+The same admin settings page (`/admin/asetukset`) also holds:
+
+- **Tietoa meistä -sivun teksti** (`aboutText`, Markdown) — the main body of the public `/tietoa` page.
+- **Sähköposti** / **Telegram-linkki** (`contactInfo` / `socialInfo`) — shown on `/tietoa` as a clickable `mailto:`/link plus a QR code for each, generated server-side (`src/lib/qrcode.ts`, the `qrcode` package) as inline SVG. No external QR image service is called, and no client JS is involved.
+- **Takasivun teksti** (`backPageText`, Markdown) — the short recurring harm-reduction blurb shown on both `/tietoa` and the zine's printed back cover.
+
+### Why SiteSettings self-corrects certain fields on boot
+
+`prisma/seed-reference.ts` runs on every boot (see below) and includes a narrow, one-time correction: if the single `SiteSettings` row still holds one of the exact placeholder values this project shipped with early on (the old `logo-placeholder.svg` path, or the placeholder email/Telegram handle), it's replaced with the real value. This exists because that row is created once and then only ever read with `update: {}` elsewhere — so an environment deployed before real content existed would otherwise keep showing stale placeholders forever, even after the code and defaults were fixed. The check is exact-value-only, so once a field holds anything else — including an admin's own edit — it's never touched again.
 
 ## Tampereen palvelut & Tampereen NA-ryhmät (public directories + maps)
 

@@ -142,6 +142,10 @@ model SiteSettings {
   id            Int    @id @default(1)
   orgName       String @default("Tampereen Käyttäjäyhteisö")
   description   String @default("")
+  /// Longer Markdown body for the public /tietoa page specifically —
+  /// kept separate from `description` (the short blurb also printed on
+  /// the zine's back cover), so this can be as long as needed.
+  aboutText     String @default("")
   contactInfo   String @default("")
   socialInfo    String @default("")
   backPageText  String @default("")

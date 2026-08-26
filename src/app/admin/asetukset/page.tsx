@@ -28,11 +28,15 @@ export default async function AsetuksetPage() {
           <textarea name="description" defaultValue={settings.description} rows={3} className="rounded border border-line bg-paper p-3 text-sm" />
         </label>
         <label className="flex flex-col gap-1 text-sm font-medium">
-          Yhteystiedot
+          Tietoa meistä -sivun teksti (Markdown, /tietoa)
+          <textarea name="aboutText" defaultValue={settings.aboutText} rows={8} className="rounded border border-line bg-paper p-3 font-mono text-sm" />
+        </label>
+        <label className="flex flex-col gap-1 text-sm font-medium">
+          Sähköposti (mailto-linkki ja QR-koodi /tietoa-sivulla)
           <input name="contactInfo" defaultValue={settings.contactInfo} className="rounded border border-line bg-paper px-3 py-2" />
         </label>
         <label className="flex flex-col gap-1 text-sm font-medium">
-          Somekanavat
+          Telegram-linkki (QR-koodi /tietoa-sivulla)
           <input name="socialInfo" defaultValue={settings.socialInfo} className="rounded border border-line bg-paper px-3 py-2" />
         </label>
         <label className="flex flex-col gap-1 text-sm font-medium">

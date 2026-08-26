@@ -13,6 +13,59 @@ import path from "path";
 
 const prisma = new PrismaClient();
 
+const REAL_ABOUT_TEXT = `Tampereen Käyttäjäyhteisö pyrkii edustamaan Tampereen päihdekäyttäjäyhteisöä, tunnistaen että yhteisömme koostuu ihmisistä, jotka tulevat hyvin erilaisista lähtökohdista ja ovat hyvin erilaisissa tilanteissa. Ensisijaiseksi katsomme tuoda kaikista huono-osaisempien äänen kuuluviin, sillä tiedostamme että juuri huonoimmassa asemassa olevat ovat suurimman uhan alla ja vaarassa menehtyä.
+
+Tärkein meitä ohjaava periaate on siis henkien pelastaminen. Tämän lisäksi pyrimme edistämään yhteisömme hyvinvointia ja parantamaan suhteitamme yhteiskuntaan, muihin yhteisöihin, naapurustoon ja viranomaisiin.
+
+Tiedostamme että päihdepoliittinen tilanne Suomessa kaipaa parannusta ja vaadimme että vertaistemme ääni on mukana kaikessa yhteisöämme koskevissa asioissa.
+
+Yhteisöömme ovat tervetulleet niin huumeidenkäyttäjät, kuin niitä ennen käyttäneet tai kuka tahansa yhteisöstämme kiinnostunut taho.`;
+
+const REAL_EMAIL = "trekayttajayhteiso@gmail.com";
+const REAL_TELEGRAM = "http://dy.fi/7zs";
+const REAL_BACKPAGE_TEXT =
+  "**Haittojen vähentäminen:**\n\n- Älä käytä yksin.\n- Naloksoni pelastaa hengen yliannostuksessa.\n- Terveysneuvontapisteistä saa puhtaita välineitä maksutta.\n";
+
+// Values seed.ts originally used as placeholders — only replaced if a
+// SiteSettings row still holds exactly one of these, so an admin's own
+// edits (made through /admin/asetukset after this ran once) are never
+// silently overwritten on a later boot.
+const STALE_DEFAULTS = {
+  logoPath: "/branding/logo-placeholder.svg",
+  contactInfo: "info@kayttajayhteiso.fi",
+  socialInfo: "@tampereenkayttajayhteiso",
+};
+
+async function syncSiteSettings(): Promise<void> {
+  const existing = await prisma.siteSettings.findUnique({ where: { id: 1 } });
+
+  if (!existing) {
+    await prisma.siteSettings.create({
+      data: {
+        id: 1,
+        aboutText: REAL_ABOUT_TEXT,
+        contactInfo: REAL_EMAIL,
+        socialInfo: REAL_TELEGRAM,
+        backPageText: REAL_BACKPAGE_TEXT,
+      },
+    });
+    console.log("SiteSettings: luotu oletusarvoilla.");
+    return;
+  }
+
+  const fixes: Record<string, string> = {};
+  if (existing.logoPath === STALE_DEFAULTS.logoPath) fixes.logoPath = "/branding/logo.jpeg";
+  if (!existing.aboutText) fixes.aboutText = REAL_ABOUT_TEXT;
+  if (!existing.contactInfo || existing.contactInfo === STALE_DEFAULTS.contactInfo) fixes.contactInfo = REAL_EMAIL;
+  if (!existing.socialInfo || existing.socialInfo === STALE_DEFAULTS.socialInfo) fixes.socialInfo = REAL_TELEGRAM;
+  if (!existing.backPageText) fixes.backPageText = REAL_BACKPAGE_TEXT;
+
+  if (Object.keys(fixes).length > 0) {
+    await prisma.siteSettings.update({ where: { id: 1 }, data: fixes });
+    console.log(`SiteSettings: korjattu ${Object.keys(fixes).join(", ")}.`);
+  }
+}
+
 type DirectoryEntry = {
   category: string;
   name: string;
@@ -43,6 +96,8 @@ type NaMeetingEntry = {
 };
 
 export async function seedReferenceData(): Promise<void> {
+  await syncSiteSettings();
+
   const directoryPath = path.join(__dirname, "data", "services.json");
   const directory: DirectoryEntry[] = JSON.parse(readFileSync(directoryPath, "utf-8"));
   for (const entry of directory) {

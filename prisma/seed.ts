@@ -54,21 +54,8 @@ async function main() {
     serviceName: "[DEMO] Kriisikeskus Osviitta",
   });
 
-  await prisma.siteSettings.upsert({
-    where: { id: 1 },
-    update: {},
-    create: {
-      id: 1,
-      orgName: "Tampereen Käyttäjäyhteisö",
-      description:
-        "Vertaistoimintaa ja tiedonvälitystä huumeita käyttäville ja heidän läheisilleen Tampereella.",
-      contactInfo: "info@kayttajayhteiso.fi",
-      socialInfo: "@tampereenkayttajayhteiso",
-      backPageText:
-        "**Haittojen vähentäminen:**\n\n- Älä käytä yksin.\n- Naloksoni pelastaa hengen yliannostuksessa.\n- Terveysneuvontapisteistä saa puhtaita välineitä maksutta.\n",
-      logoPath: "/branding/logo.jpeg",
-    },
-  });
+  // SiteSettings (real org info, logo, about text) is owned by
+  // seedReferenceData() below, not demo data.
 
   const now = new Date();
   const in5days = new Date(now.getTime() + 5 * 24 * 60 * 60 * 1000);
