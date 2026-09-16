@@ -81,10 +81,13 @@ for (const line of lines) {
     continue;
   }
 
-  const phoneLabelMatch = t.match(/^(Puhelin|Ajanvaraus|Hoidon tarpeen arviointi|Päivystävä sairaanhoitaja):\s*(.+?)\.?$/i);
+  // A labelled phone line is captured into `phone` and kept out of the
+  // description: it used to be pushed into both, so every entry's
+  // description opened by repeating its own number ("Puhelin: 116 117
+  // Kiireelliset…") and readers saw it twice.
+  const phoneLabelMatch = t.match(/^(Puhelin|Ajanvaraus|Soita|Numero):\s*(.+?)\.?$/i);
   if (phoneLabelMatch) {
     if (!current.phone) current.phone = phoneLabelMatch[2].trim();
-    current.descriptionLines.push(t);
     continue;
   }
 

@@ -79,6 +79,30 @@ export function toDateTimeLocalValue(date: Date): string {
   return new Date(date.getTime() - offsetMs).toISOString().slice(0, 16);
 }
 
+/**
+ * Finnish month names in the genitive, for headings that read as a phrase
+ * ("Syyskuun luettavaa"). Intl gives nominative forms only, so these are
+ * spelled out.
+ */
+const FI_MONTHS_GENITIVE = [
+  "tammikuun",
+  "helmikuun",
+  "maaliskuun",
+  "huhtikuun",
+  "toukokuun",
+  "kesäkuun",
+  "heinäkuun",
+  "elokuun",
+  "syyskuun",
+  "lokakuun",
+  "marraskuun",
+  "joulukuun",
+];
+
+export function monthGenitive(date: Date | string): string {
+  return FI_MONTHS_GENITIVE[new Date(date).getMonth()];
+}
+
 export function formatDateRange(start: Date | string, end: Date | string): string {
   const s = new Date(start);
   const e = new Date(end);

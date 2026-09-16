@@ -23,7 +23,11 @@ Yhteisöömme ovat tervetulleet niin huumeidenkäyttäjät, kuin niitä ennen k�
 
 const REAL_EMAIL = "trekayttajayhteiso@gmail.com";
 const REAL_TELEGRAM = "http://dy.fi/7zs";
-const REAL_BACKPAGE_TEXT =
+// Seeded onto every install until it was dropped from the paper and the
+// site. Cleared below wherever it is still exactly this text, so existing
+// databases lose it too; a back-page text an admin has since written
+// themselves is left alone.
+const RETIRED_BACKPAGE_TEXT =
   "**Haittojen vähentäminen:**\n\n- Älä käytä yksin.\n- Naloksoni pelastaa hengen yliannostuksessa.\n- Terveysneuvontapisteistä saa puhtaita välineitä maksutta.\n";
 
 // Values seed.ts originally used as placeholders — only replaced if a
@@ -46,7 +50,6 @@ async function syncSiteSettings(): Promise<void> {
         aboutText: REAL_ABOUT_TEXT,
         contactInfo: REAL_EMAIL,
         socialInfo: REAL_TELEGRAM,
-        backPageText: REAL_BACKPAGE_TEXT,
       },
     });
     console.log("SiteSettings: luotu oletusarvoilla.");
@@ -58,7 +61,7 @@ async function syncSiteSettings(): Promise<void> {
   if (!existing.aboutText) fixes.aboutText = REAL_ABOUT_TEXT;
   if (!existing.contactInfo || existing.contactInfo === STALE_DEFAULTS.contactInfo) fixes.contactInfo = REAL_EMAIL;
   if (!existing.socialInfo || existing.socialInfo === STALE_DEFAULTS.socialInfo) fixes.socialInfo = REAL_TELEGRAM;
-  if (!existing.backPageText) fixes.backPageText = REAL_BACKPAGE_TEXT;
+  if (existing.backPageText === RETIRED_BACKPAGE_TEXT) fixes.backPageText = "";
 
   if (Object.keys(fixes).length > 0) {
     await prisma.siteSettings.update({ where: { id: 1 }, data: fixes });
@@ -95,6 +98,37 @@ type NaMeetingEntry = {
   lng: number | null;
 };
 
+/**
+ * Deletes directory rows the source list no longer contains, so renaming or
+ * dropping an entry actually removes it instead of leaving the old row
+ * beside the new one (the upserts above are keyed on category + name, so a
+ * rename reads as an addition).
+ *
+ * An entry someone has attached a Kokemus to is kept and reported instead:
+ * deleting it would cascade that note away, and losing what a person wrote
+ * is worse than carrying a stale row until an admin looks at it.
+ */
+async function pruneDirectory(directory: DirectoryEntry[]): Promise<void> {
+  const current = new Set(directory.map((d) => `${d.category}\u0000${d.name}`));
+  const rows = await prisma.directoryService.findMany({
+    select: { id: true, category: true, name: true, _count: { select: { experiences: true } } },
+  });
+
+  const stale = rows.filter((r) => !current.has(`${r.category}\u0000${r.name}`));
+  const removable = stale.filter((r) => r._count.experiences === 0);
+  const kept = stale.filter((r) => r._count.experiences > 0);
+
+  if (removable.length > 0) {
+    await prisma.directoryService.deleteMany({ where: { id: { in: removable.map((r) => r.id) } } });
+    console.log(`Palveluhakemisto: poistettu ${removable.length} vanhentunutta kohdetta.`);
+  }
+  for (const row of kept) {
+    console.log(
+      `Palveluhakemisto: "${row.name}" ei ole enää listalla, mutta siihen liittyy kokemuksia — jätetty poistamatta.`,
+    );
+  }
+}
+
 export async function seedReferenceData(): Promise<void> {
   await syncSiteSettings();
 
@@ -114,6 +148,8 @@ export async function seedReferenceData(): Promise<void> {
     });
   }
   console.log(`Palveluhakemisto: ${directory.length} kohdetta (${directory.filter((d) => d.lat).length} kartalla).`);
+
+  await pruneDirectory(directory);
 
   const meetingsPath = path.join(__dirname, "data", "na-meetings.json");
   const meetings: NaMeetingEntry[] = JSON.parse(readFileSync(meetingsPath, "utf-8"));

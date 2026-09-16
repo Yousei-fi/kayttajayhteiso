@@ -1,7 +1,8 @@
 import { renderMarkdown } from "@/lib/markdown";
-import { formatDate, formatDateRange, formatDateTime, formatTime } from "@/lib/week";
+import { formatDate, formatDateRange, formatDateTime, formatTime, monthGenitive } from "@/lib/week";
 import { qrCodeSvg } from "@/lib/qrcode";
 import { NA_INTRO_PARAGRAPHS } from "@/lib/na-meetings";
+import { compareCategories } from "@/lib/directory";
 import { ZINE_NAME, ZINE_TAGLINE, candleMarkSvg, flameMarkSvg } from "@/lib/zine-brand";
 import type {
   DirectoryService,
@@ -32,8 +33,13 @@ const MAX_DESCRIPTION_CHARS = 110;
  */
 function phoneNumber(phone: string | null): string {
   const phoneText = (phone ?? "").trim();
-  const leadingNumber = phoneText.match(/^\+?[\d][\d\s()\-–]*/);
-  return leadingNumber ? leadingNumber[0].replace(/[\s\-–]+$/, "") : phoneText;
+  // The first dialable run, wherever it starts: a phone field may open with
+  // a label ("Psykiatrian neuvonta: 050 323 6838 / 03 311 63540") or carry
+  // opening hours after the number, and only the number fits the column.
+  // Digits joined by at most one space or dash each, so the run stops at the
+  // bracket in "040 136 8712 (24/7)" instead of swallowing "(24".
+  const number = phoneText.match(/\+?\d(?:[\s\-–]?\d){4,}/);
+  return number ? number[0].trim() : phoneText;
 }
 
 /**
@@ -150,6 +156,9 @@ export async function buildZineHtml(params: {
     .map((item) => ({ item, meta: eventMeta(item) }))
     .sort((a, b) => (a.meta.startsAt?.getTime() ?? 0) - (b.meta.startsAt?.getTime() ?? 0));
   const dateRange = formatDateRange(edition.startDate, edition.endDate);
+  // "Syyskuun luettavaa" — the articles section is named for the month it
+  // draws from (see articleWindowStart), not for the edition's week.
+  const articlesTitle = `${monthGenitive(edition.startDate)} luettavaa`;
 
   const [kokemuksetQr, submissionQr] = await Promise.all([
     settings.publicSiteUrl ? qrCodeSvg(settings.publicSiteUrl) : Promise.resolve(null),
@@ -176,7 +185,6 @@ export async function buildZineHtml(params: {
       <div class="cover-rules"><span></span><span></span></div>
       <p class="cover-tagline">${esc(ZINE_TAGLINE)}</p>
       <p class="cover-date">${esc(dateRange)}</p>
-      <div class="cover-stamp">Ilmainen · ota mukaasi</div>
     </div>
   </section>`;
 
@@ -189,14 +197,6 @@ export async function buildZineHtml(params: {
         : ""
     }
     ${settings.aboutText ? `<div class="info-body">${renderMarkdown(settings.aboutText)}</div>` : ""}
-    ${
-      settings.contactInfo || settings.socialInfo
-        ? `<div class="info-contact">
-            ${settings.contactInfo ? `<p><span>Sähköposti</span> ${esc(settings.contactInfo)}</p>` : ""}
-            ${settings.socialInfo ? `<p><span>Verkossa</span> ${esc(settings.socialInfo)}</p>` : ""}
-          </div>`
-        : ""
-    }
   </section>`;
 
   const eventsHtml =
@@ -240,7 +240,7 @@ export async function buildZineHtml(params: {
       ${alerts.length > 0 ? `<li>Tiedotteet <span>(${alerts.length})</span></li>` : ""}
       ${
         articles.length > 0
-          ? `<li>Artikkelit
+          ? `<li>${esc(articlesTitle)}
               <ul>${articles.map((a) => `<li>${esc(a.titleSnapshot)}</li>`).join("")}</ul>
             </li>`
           : ""
@@ -277,7 +277,7 @@ export async function buildZineHtml(params: {
       ? ""
       : `
   <section class="articles">
-    ${sectionTitle("Artikkelit")}
+    ${sectionTitle(articlesTitle)}
     ${articles
       .map(
         (a) => `
@@ -412,7 +412,7 @@ function groupByCategory(services: ServiceWithExperiences[]): [string, ServiceWi
     if (!map.has(s.category)) map.set(s.category, []);
     map.get(s.category)!.push(s);
   }
-  return [...map.entries()];
+  return [...map.entries()].sort(([a], [b]) => compareCategories(a, b));
 }
 
 function groupByWeekday(meetings: NaMeeting[]): [string, NaMeeting[]][] {
@@ -507,20 +507,6 @@ function zineCss(mode: "preview" | "print"): string {
       margin: 0 0 3mm;
     }
     .cover-date { font-family: var(--display); font-size: 21px; letter-spacing: 0.08em; margin: 0; }
-    .cover-stamp {
-      position: absolute;
-      right: 2mm;
-      bottom: -7mm;
-      transform: rotate(-4deg);
-      border: 1.2mm solid var(--accent);
-      color: var(--accent);
-      font-family: var(--display);
-      font-size: 13px;
-      text-transform: uppercase;
-      letter-spacing: 0.14em;
-      padding: 1.5mm 3mm;
-      background: var(--paper);
-    }
 
     /* ---- section heads: two rules and a flame, cheap to print ---- */
     .section-title {
@@ -559,22 +545,6 @@ function zineCss(mode: "preview" | "print"): string {
     .info-logo { max-height: 34mm; margin-bottom: 6mm; }
     .info-body { font-size: 14px; line-height: 1.62; max-width: 155mm; }
     .info-body p { margin: 0 0 0.85em; }
-    .info-contact {
-      margin-top: 8mm;
-      border-top: 0.4mm dashed var(--ink);
-      padding-top: 3mm;
-      font-family: var(--mono);
-      font-size: 11px;
-      max-width: 155mm;
-    }
-    .info-contact p { margin: 0 0 1.5mm; }
-    .info-contact span {
-      display: inline-block;
-      min-width: 26mm;
-      text-transform: uppercase;
-      letter-spacing: 0.12em;
-      color: var(--accent);
-    }
     .info-body p:first-of-type::first-letter {
       float: left;
       font-family: var(--display);

@@ -2,6 +2,7 @@ import Link from "next/link";
 import { prisma } from "@/lib/db";
 import { ServiceMap } from "@/components/service-map";
 import { formatDate } from "@/lib/week";
+import { compareCategories } from "@/lib/directory";
 
 export default async function PalvelutPage({
   searchParams,
@@ -28,7 +29,11 @@ export default async function PalvelutPage({
     }),
   ]);
 
-  const categories = categoriesRaw.map((c) => c.category);
+  // Same reading order as the printed directory: urgent help first.
+  const categories = categoriesRaw.map((c) => c.category).sort(compareCategories);
+  const sortedServices = [...services].sort(
+    (a, b) => compareCategories(a.category, b.category) || a.name.localeCompare(b.name, "fi"),
+  );
   const pins = services
     .filter((s) => s.lat != null && s.lng != null)
     .map((s) => ({ id: s.id, name: s.name, lat: s.lat!, lng: s.lng!, subtitle: s.category }));
@@ -68,7 +73,7 @@ export default async function PalvelutPage({
 
       <div className="grid gap-8 md:grid-cols-[2fr_1fr]">
         <ul className="flex flex-col gap-2">
-          {services.map((s) => (
+          {sortedServices.map((s) => (
             <li key={s.id} className="rounded border border-line bg-paper p-3">
               <Link href={`/palvelut/${s.id}`} className="font-semibold hover:underline">
                 {s.name}
@@ -78,7 +83,7 @@ export default async function PalvelutPage({
               {s.description && <p className="mt-1 line-clamp-2 text-sm">{s.description}</p>}
             </li>
           ))}
-          {services.length === 0 && <p className="text-sm text-muted">Ei palveluita tässä kategoriassa.</p>}
+          {sortedServices.length === 0 && <p className="text-sm text-muted">Ei palveluita tässä kategoriassa.</p>}
         </ul>
 
         <div>

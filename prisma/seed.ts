@@ -4,6 +4,12 @@
  * "[DEMO]" and can be removed by deleting these users from /admin/kayttajat
  * (which cascades their alerts/articles/rounds) and deleting the sample
  * edition from the database.
+ *
+ * Every row here is written with a fixed id and upserted, and any other
+ * "[DEMO]" row is deleted at the end. That matters because the container
+ * entrypoint re-runs this file on every boot when SEED_DEMO_DATA=true:
+ * with plain creates, each restart added another copy of the same demo
+ * alerts and articles, and they piled up in the paper.
  */
 import { PrismaClient } from "@prisma/client";
 import bcrypt from "bcryptjs";
@@ -25,6 +31,46 @@ async function upsertUser(data: {
     update: {},
     create: { ...data, passwordHash, active: true },
   });
+}
+
+/**
+ * Fixed ids for every demo row, so a re-run updates each row in place
+ * rather than adding another copy, and anything else marked "[DEMO]" can be
+ * recognised as a leftover and swept up.
+ */
+const DEMO_ID = {
+  alertPoikkeusaukiolo: "demo-alert-poikkeusaukiolo",
+  alertNaloksonikoulutus: "demo-alert-naloksonikoulutus",
+  alertPuhelinPois: "demo-alert-puhelin-pois-kaytosta",
+  articleHaavanhoito: "demo-article-haavanhoito",
+  articleVertaistuki: "demo-article-vertaistuki",
+  roundKeskusta: "demo-round-keskusta",
+  roundHervanta: "demo-round-hervanta",
+} as const;
+
+const DEMO_IDS = Object.values(DEMO_ID);
+
+/**
+ * Deletes "[DEMO]" alerts, articles and street rounds that this run did not
+ * write — the duplicates left behind by earlier runs, from back when this
+ * file created rows unconditionally on every container boot.
+ */
+async function removeStrayDemoRows(): Promise<void> {
+  const stray = { title: { startsWith: "[DEMO]" }, id: { notIn: DEMO_IDS } };
+  const [alerts, articles] = await Promise.all([
+    prisma.alert.deleteMany({ where: stray }),
+    prisma.article.deleteMany({ where: stray }),
+  ]);
+  const rounds = await prisma.streetRound.deleteMany({
+    where: { author: { name: { startsWith: "[DEMO]" } }, id: { notIn: DEMO_IDS } },
+  });
+
+  const removed = alerts.count + articles.count + rounds.count;
+  if (removed > 0) {
+    console.log(
+      `Poistettu ${removed} ylimääräistä demo-riviä (${alerts.count} ilmoitusta, ${articles.count} artikkelia, ${rounds.count} kierrosta).`,
+    );
+  }
 }
 
 async function main() {
@@ -60,72 +106,93 @@ async function main() {
   const now = new Date();
   const in5days = new Date(now.getTime() + 5 * 24 * 60 * 60 * 1000);
 
-  const alert1 = await prisma.alert.create({
-    data: {
-      serviceUserId: serviceA.id,
-      title: "[DEMO] Poikkeusaukiolo",
-      body: "Suljemme poikkeuksellisesti klo 16 torstaina. Kiireellisissä asioissa ota yhteyttä puhelimitse.",
-      validUntil: in5days,
-      includeInZine: true,
-    },
+  const alert1Data = {
+    serviceUserId: serviceA.id,
+    title: "[DEMO] Poikkeusaukiolo",
+    body: "Suljemme poikkeuksellisesti klo 16 torstaina. Kiireellisissä asioissa ota yhteyttä puhelimitse.",
+    validUntil: in5days,
+    includeInZine: true,
+  };
+  const alert1 = await prisma.alert.upsert({
+    where: { id: DEMO_ID.alertPoikkeusaukiolo },
+    update: alert1Data,
+    create: { id: DEMO_ID.alertPoikkeusaukiolo, ...alert1Data },
   });
 
-  const alert2 = await prisma.alert.create({
-    data: {
-      serviceUserId: serviceA.id,
-      title: "[DEMO] Naloksonikoulutus keskiviikkona",
-      body: "Ilmainen naloksonikoulutus keskiviikkona klo 14. Ei ennakkoilmoittautumista.",
-      includeInZine: true,
-    },
+  const alert2Data = {
+    serviceUserId: serviceA.id,
+    title: "[DEMO] Naloksonikoulutus keskiviikkona",
+    body: "Ilmainen naloksonikoulutus keskiviikkona klo 14. Ei ennakkoilmoittautumista.",
+    includeInZine: true,
+  };
+  const alert2 = await prisma.alert.upsert({
+    where: { id: DEMO_ID.alertNaloksonikoulutus },
+    update: alert2Data,
+    create: { id: DEMO_ID.alertNaloksonikoulutus, ...alert2Data },
   });
 
-  await prisma.alert.create({
-    data: {
-      serviceUserId: serviceB.id,
-      title: "[DEMO] Puhelinnumero tilapäisesti pois käytöstä",
-      body: "Puhelinlinjamme on tilapäisesti pois käytöstä huoltotöiden vuoksi. Käy paikan päällä tai lähetä sähköpostia.",
-      includeInZine: true,
-    },
+  const alert3Data = {
+    serviceUserId: serviceB.id,
+    title: "[DEMO] Puhelinnumero tilapäisesti pois käytöstä",
+    body: "Puhelinlinjamme on tilapäisesti pois käytöstä huoltotöiden vuoksi. Käy paikan päällä tai lähetä sähköpostia.",
+    includeInZine: true,
+  };
+  await prisma.alert.upsert({
+    where: { id: DEMO_ID.alertPuhelinPois },
+    update: alert3Data,
+    create: { id: DEMO_ID.alertPuhelinPois, ...alert3Data },
   });
 
-  const article1 = await prisma.article.create({
-    data: {
-      authorId: member.id,
-      title: "[DEMO] Havaintoja kadulta: tarve haavanhoito-ohjaukselle kasvaa",
-      body: "## Mitä kuulimme\n\nViime viikkojen katukierroksilla useampi ihminen kysyi haavanhoidosta ja puhtaista sitomistarvikkeista.\n\nMuistutamme, että matalan kynnyksen terveysneuvonnasta saa apua myös haavanhoitoon.\n",
-      status: "PUBLISHED",
-      includeInZine: true,
-    },
+  const article1Data = {
+    authorId: member.id,
+    title: "[DEMO] Havaintoja kadulta: tarve haavanhoito-ohjaukselle kasvaa",
+    body: "## Mitä kuulimme\n\nViime viikkojen katukierroksilla useampi ihminen kysyi haavanhoidosta ja puhtaista sitomistarvikkeista.\n\nMuistutamme, että matalan kynnyksen terveysneuvonnasta saa apua myös haavanhoitoon.\n",
+    status: "PUBLISHED" as const,
+    includeInZine: true,
+  };
+  const article1 = await prisma.article.upsert({
+    where: { id: DEMO_ID.articleHaavanhoito },
+    update: article1Data,
+    create: { id: DEMO_ID.articleHaavanhoito, ...article1Data },
   });
 
-  await prisma.article.create({
-    data: {
-      authorId: member.id,
-      title: "[DEMO] Miksi vertaistuki toimii",
-      body: "Vertaistuki perustuu jaettuun kokemukseen. Tässä artikkelissa kerromme, miksi se on tärkeä osa Tampereen Käyttäjäyhteisön toimintaa.\n",
-      status: "PUBLISHED",
-      includeInZine: false,
-    },
+  const article2Data = {
+    authorId: member.id,
+    title: "[DEMO] Miksi vertaistuki toimii",
+    body: "Vertaistuki perustuu jaettuun kokemukseen. Tässä artikkelissa kerromme, miksi se on tärkeä osa Tampereen Käyttäjäyhteisön toimintaa.\n",
+    status: "PUBLISHED" as const,
+    includeInZine: false,
+  };
+  await prisma.article.upsert({
+    where: { id: DEMO_ID.articleVertaistuki },
+    update: article2Data,
+    create: { id: DEMO_ID.articleVertaistuki, ...article2Data },
   });
 
-  await prisma.streetRound.create({
-    data: {
-      authorId: member.id,
-      date: new Date(now.getTime() - 2 * 24 * 60 * 60 * 1000),
-      participants: "2 jäsentä",
-      area: "Keskusta / Tullintori",
-      notes:
-        "Jaettiin noin 35 lehteä. Useampi mainitsi pitkät jonot eräässä palvelussa. Kaksi kysyi haavanhoidosta. Kiinnostusta naloksonikoulutukseen.",
-    },
+  const round1Data = {
+    authorId: member.id,
+    date: new Date(now.getTime() - 2 * 24 * 60 * 60 * 1000),
+    participants: "2 jäsentä",
+    area: "Keskusta / Tullintori",
+    notes:
+      "Jaettiin noin 35 lehteä. Useampi mainitsi pitkät jonot eräässä palvelussa. Kaksi kysyi haavanhoidosta. Kiinnostusta naloksonikoulutukseen.",
+  };
+  await prisma.streetRound.upsert({
+    where: { id: DEMO_ID.roundKeskusta },
+    update: round1Data,
+    create: { id: DEMO_ID.roundKeskusta, ...round1Data },
   });
 
-  await prisma.streetRound.create({
-    data: {
-      authorId: member.id,
-      date: new Date(now.getTime() - 5 * 24 * 60 * 60 * 1000),
-      area: "Hervanta",
-      notes: "Rauhallinen kierros. Kysyttiin liikkuvan terveysneuvonnan seuraavasta ajankohdasta.",
-    },
+  const round2Data = {
+    authorId: member.id,
+    date: new Date(now.getTime() - 5 * 24 * 60 * 60 * 1000),
+    area: "Hervanta",
+    notes: "Rauhallinen kierros. Kysyttiin liikkuvan terveysneuvonnan seuraavasta ajankohdasta.",
+  };
+  await prisma.streetRound.upsert({
+    where: { id: DEMO_ID.roundHervanta },
+    update: round2Data,
+    create: { id: DEMO_ID.roundHervanta, ...round2Data },
   });
 
   // A sample already-finalized edition, for a past week, so the archive and
@@ -207,6 +274,7 @@ async function main() {
     },
   });
 
+  await removeStrayDemoRows();
   await seedReferenceData();
 
   console.log("Seed valmis.");
