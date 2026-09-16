@@ -10,11 +10,11 @@ export default async function ArkistoPage() {
 
   return (
     <main className="mx-auto max-w-2xl px-4 py-8">
-      <h1 className="mb-6 text-2xl font-bold">Viikkolehtien arkisto</h1>
+      <h1 className="mb-6 text-2xl font-bold">Lehtien arkisto</h1>
       <ul className="flex flex-col gap-2">
         {editions.map((e) => (
           <li key={e.id} className="rounded border border-line bg-paper p-3">
-            <Link href={`/viikkolehti/arkisto/${e.id}`} className="font-semibold hover:underline">
+            <Link href={`/lehti/arkisto/${e.id}`} className="font-semibold hover:underline">
               {formatDateRange(e.startDate, e.endDate)}
             </Link>
           </li>

@@ -10,7 +10,7 @@ export default async function AsetuksetPage() {
     <div className="max-w-2xl">
       <h1 className="mb-1 text-xl font-bold">Asetukset ja brändäys</h1>
       <p className="mb-4 text-sm text-muted">
-        Nämä tiedot näkyvät julkisella sivustolla ja viikkolehden takasivulla. Vaihda logo lisäämällä
+        Nämä tiedot näkyvät julkisella sivustolla ja lehden takasivulla. Vaihda logo lisäämällä
         tiedosto kansioon <code>public/branding/</code> ja kirjoittamalla sen polku alle.
       </p>
 
@@ -44,11 +44,11 @@ export default async function AsetuksetPage() {
           <textarea name="backPageText" defaultValue={settings.backPageText} rows={8} className="rounded border border-line bg-paper p-3 font-mono text-sm" />
         </label>
         <label className="flex flex-col gap-1 text-sm font-medium">
-          Kirjoitusehdotusten sähköposti (viikkolehden viimeinen sivu, QR-koodi)
+          Kirjoitusehdotusten sähköposti (lehden viimeinen sivu, QR-koodi)
           <input name="submissionEmail" defaultValue={settings.submissionEmail} className="rounded border border-line bg-paper px-3 py-2" />
         </label>
         <label className="flex flex-col gap-1 text-sm font-medium">
-          Sivuston julkinen osoite (viikkolehden Kokemukset-osiot, QR-koodi)
+          Sivuston julkinen osoite (lehden Kokemukset-osiot, QR-koodi)
           <input name="publicSiteUrl" defaultValue={settings.publicSiteUrl} className="rounded border border-line bg-paper px-3 py-2" />
         </label>
 

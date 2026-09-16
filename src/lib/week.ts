@@ -54,6 +54,31 @@ export function formatDate(date: Date | string): string {
   return FI_DATE.format(new Date(date));
 }
 
+const FI_DATETIME = new Intl.DateTimeFormat("fi-FI", {
+  weekday: "short",
+  day: "numeric",
+  month: "numeric",
+  hour: "2-digit",
+  minute: "2-digit",
+});
+
+const FI_TIME = new Intl.DateTimeFormat("fi-FI", { hour: "2-digit", minute: "2-digit" });
+
+/** "ma 21.9. klo 18.00" — the form community events are announced in. */
+export function formatDateTime(date: Date | string): string {
+  return FI_DATETIME.format(new Date(date));
+}
+
+export function formatTime(date: Date | string): string {
+  return FI_TIME.format(new Date(date));
+}
+
+/** The value a datetime-local input expects, in local (not UTC) time. */
+export function toDateTimeLocalValue(date: Date): string {
+  const offsetMs = date.getTimezoneOffset() * 60 * 1000;
+  return new Date(date.getTime() - offsetMs).toISOString().slice(0, 16);
+}
+
 export function formatDateRange(start: Date | string, end: Date | string): string {
   const s = new Date(start);
   const e = new Date(end);

@@ -26,5 +26,5 @@ export async function updateSiteSettings(formData: FormData): Promise<void> {
   revalidatePath("/admin/asetukset");
   revalidatePath("/");
   revalidatePath("/tietoa");
-  revalidatePath("/viikkolehti");
+  revalidatePath("/lehti");
 }

@@ -5,6 +5,7 @@ import { buildZineHtml } from "@/lib/zine-html";
 import { syncEditionItems, getZineDirectorySections } from "@/lib/zine";
 import { formatDateRange } from "@/lib/week";
 import { notFound } from "next/navigation";
+import type { ZineContentType } from "@prisma/client";
 import {
   toggleItemExcluded,
   moveItem,
@@ -12,7 +13,13 @@ import {
   generateEditionPdf,
 } from "../actions";
 
-export default async function ViikkolehtiEditorPage({
+const itemTypeLabel: Record<ZineContentType, string> = {
+  ALERT: "Ilmoitus",
+  ARTICLE: "Artikkeli",
+  EVENT: "Tapahtuma",
+};
+
+export default async function LehtiEditorPage({
   params,
 }: {
   params: Promise<{ id: string }>;
@@ -79,7 +86,7 @@ export default async function ViikkolehtiEditorPage({
               {included.map((item, idx) => (
                 <li key={item.id} className="rounded border border-line bg-paper p-3">
                   <p className="text-xs uppercase tracking-wide text-accent-2">
-                    {item.contentType === "ALERT" ? "Ilmoitus" : "Artikkeli"} · {item.authorSnapshot}
+                    {itemTypeLabel[item.contentType]} · {item.authorSnapshot}
                   </p>
                   <p className="font-semibold">{item.titleSnapshot}</p>
                   {edition.status === "DRAFT" && (

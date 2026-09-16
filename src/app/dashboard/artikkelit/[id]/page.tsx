@@ -58,7 +58,7 @@ export default async function MuokkaaArtikkeliaPage({
             defaultChecked={article.includeInZine}
             disabled={!canEdit}
           />
-          Ehdota tulevaan viikkolehteen
+          Ehdota tulevaan lehteen
         </label>
 
         {canEdit && (

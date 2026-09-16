@@ -1,3 +1,4 @@
+import { ZINE_NAME } from "@/lib/zine-brand";
 import Link from "next/link";
 import { getCurrentUser } from "@/lib/auth";
 import { logoutAction } from "@/app/kirjaudu/actions";
@@ -26,8 +27,11 @@ export async function SiteHeader() {
           <Link href="/artikkelit" className="hover:underline">
             Artikkelit
           </Link>
-          <Link href="/viikkolehti" className="hover:underline">
-            Viikkolehti
+          <Link href="/lehti" className="hover:underline">
+            {ZINE_NAME}
+          </Link>
+          <Link href="/tapahtumat" className="hover:underline">
+            Tapahtumat
           </Link>
           <Link href="/palvelut" className="hover:underline">
             Tampereen palvelut

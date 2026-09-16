@@ -1,7 +1,8 @@
 import { renderMarkdown } from "@/lib/markdown";
-import { formatDate, formatDateRange } from "@/lib/week";
+import { formatDate, formatDateRange, formatDateTime, formatTime } from "@/lib/week";
 import { qrCodeSvg } from "@/lib/qrcode";
 import { NA_INTRO_PARAGRAPHS } from "@/lib/na-meetings";
+import { ZINE_NAME, ZINE_TAGLINE, candleMarkSvg, flameMarkSvg } from "@/lib/zine-brand";
 import type {
   DirectoryService,
   Experience,
@@ -13,7 +14,6 @@ import type {
 
 type EditionWithItems = ZineEdition & { items: ZineItem[] };
 type ServiceWithExperiences = DirectoryService & { experiences: Experience[] };
-
 
 function esc(s: string): string {
   return s
@@ -87,20 +87,42 @@ function alertMeta(item: ZineItem): string {
   }
 }
 
+type EventMeta = { startsAt: Date | null; endsAt: Date | null; location: string | null };
+
+function eventMeta(item: ZineItem): EventMeta {
+  const empty: EventMeta = { startsAt: null, endsAt: null, location: null };
+  if (!item.metaSnapshot) return empty;
+  try {
+    const meta = JSON.parse(item.metaSnapshot) as {
+      startsAt?: string | null;
+      endsAt?: string | null;
+      location?: string | null;
+    };
+    return {
+      startsAt: meta.startsAt ? new Date(meta.startsAt) : null,
+      endsAt: meta.endsAt ? new Date(meta.endsAt) : null,
+      location: meta.location ?? null,
+    };
+  } catch {
+    return empty;
+  }
+}
+
 /**
  * Builds the full zine document as a standalone HTML string. This exact
  * output is used both for the in-browser preview and, unmodified, as the
  * source Puppeteer renders to PDF — so the preview and the print file can
  * never drift apart.
  *
- * Page order: cover (logo + "Tietoa meistä" text) -> index -> Tiedotteet
- * -> Artikkelit -> Tampereen palvelut (+ that week's Kokemukset) ->
- * Tampereen NA-ryhmät -> a closing "write for us" page.
- * Services/meetings are always listed in full (they're a reference
- * directory, not curated per-edition); only the services' Kokemukset are
- * scoped to the edition's week. The service directory is set as a
- * two-column phonebook (name / short description / phone) because it is
- * long already and grows as entries get filled in.
+ * Page order: cover (the paper's name and mark, nothing else) -> who we are
+ * -> the community's own meetings and events -> contents -> Tiedotteet ->
+ * Artikkelit -> Tampereen palvelut (+ that week's Kokemukset) -> Tampereen
+ * NA-ryhmät -> a closing "write for us" page. Services/meetings are always
+ * listed in full (they're a reference directory, not curated per-edition);
+ * only the services' Kokemukset are scoped to the edition's week. The
+ * service directory is set as a two-column phonebook (name / short
+ * description / phone) because it is long already and grows as entries get
+ * filled in.
  */
 export async function buildZineHtml(params: {
   edition: EditionWithItems;
@@ -121,12 +143,21 @@ export async function buildZineHtml(params: {
   const items = edition.items.filter((i) => !i.excluded).sort((a, b) => a.sortOrder - b.sortOrder);
   const alerts = items.filter((i) => i.contentType === "ALERT");
   const articles = items.filter((i) => i.contentType === "ARTICLE");
+  // Events print in date order whatever the admin's manual ordering says —
+  // a calendar that is not chronological is worse than useless in print.
+  const events = items
+    .filter((i) => i.contentType === "EVENT")
+    .map((item) => ({ item, meta: eventMeta(item) }))
+    .sort((a, b) => (a.meta.startsAt?.getTime() ?? 0) - (b.meta.startsAt?.getTime() ?? 0));
   const dateRange = formatDateRange(edition.startDate, edition.endDate);
 
   const [kokemuksetQr, submissionQr] = await Promise.all([
     settings.publicSiteUrl ? qrCodeSvg(settings.publicSiteUrl) : Promise.resolve(null),
     settings.submissionEmail ? qrCodeSvg(`mailto:${settings.submissionEmail}`) : Promise.resolve(null),
   ]);
+
+  const sectionTitle = (label: string) =>
+    `<h2 class="section-title">${flameMarkSvg("section-flame")}<span>${esc(label)}</span></h2>`;
 
   const kokemuksetCta = (label: string) =>
     !settings.publicSiteUrl
@@ -139,16 +170,73 @@ export async function buildZineHtml(params: {
 
   const coverHtml = `
   <section class="cover">
-    <img class="cover-logo" src="${esc(asset(settings.logoPath)!)}" alt="${esc(settings.orgName)}" />
-    <div class="cover-range">Viikkolehti ${esc(dateRange)}</div>
-    <h1 class="cover-title">${esc(settings.orgName)}</h1>
-    ${settings.aboutText ? `<div class="cover-about">${renderMarkdown(settings.aboutText)}</div>` : ""}
+    <div class="cover-frame">
+      <div class="cover-mark">${candleMarkSvg("candle-mark")}</div>
+      <h1 class="cover-title">${esc(ZINE_NAME).replace(" ", "<br />")}</h1>
+      <div class="cover-rules"><span></span><span></span></div>
+      <p class="cover-tagline">${esc(ZINE_TAGLINE)}</p>
+      <p class="cover-date">${esc(dateRange)}</p>
+      <div class="cover-stamp">Ilmainen · ota mukaasi</div>
+    </div>
+  </section>`;
+
+  const infoHtml = `
+  <section class="info-page">
+    ${sectionTitle(settings.orgName)}
+    ${
+      settings.logoPath
+        ? `<img class="info-logo" src="${esc(asset(settings.logoPath)!)}" alt="${esc(settings.orgName)}" />`
+        : ""
+    }
+    ${settings.aboutText ? `<div class="info-body">${renderMarkdown(settings.aboutText)}</div>` : ""}
+    ${
+      settings.contactInfo || settings.socialInfo
+        ? `<div class="info-contact">
+            ${settings.contactInfo ? `<p><span>Sähköposti</span> ${esc(settings.contactInfo)}</p>` : ""}
+            ${settings.socialInfo ? `<p><span>Verkossa</span> ${esc(settings.socialInfo)}</p>` : ""}
+          </div>`
+        : ""
+    }
+  </section>`;
+
+  const eventsHtml =
+    events.length === 0
+      ? ""
+      : `
+  <section class="events">
+    ${sectionTitle("Kokoukset ja tapahtumat")}
+    <p class="section-lead">
+      Käyttäjäyhteisön omat kokoukset ja tapahtumat. Kaikki ovat tervetulleita, ellei toisin mainita.
+    </p>
+    <div class="event-list">
+      ${events
+        .map(({ item, meta }) => {
+          const when = meta.startsAt
+            ? `${formatDateTime(meta.startsAt)}${meta.endsAt ? `–${formatTime(meta.endsAt)}` : ""}`
+            : "";
+          const [day, ...rest] = when.split(" klo ");
+          return `
+        <article class="event">
+          <div class="event-when">
+            <span class="event-day">${esc(day)}</span>
+            ${rest.length > 0 ? `<span class="event-time">klo ${esc(rest.join(" klo "))}</span>` : ""}
+          </div>
+          <div class="event-main">
+            <h3 class="event-title">${esc(item.titleSnapshot)}</h3>
+            ${meta.location ? `<div class="event-where">${esc(meta.location)}</div>` : ""}
+            <p class="event-body">${esc(item.bodySnapshot)}</p>
+          </div>
+        </article>`;
+        })
+        .join("\n")}
+    </div>
   </section>`;
 
   const indexHtml = `
   <section class="index-page">
-    <h2 class="section-title">Sisällys</h2>
+    ${sectionTitle("Sisällys")}
     <ul class="index-list">
+      ${events.length > 0 ? `<li>Kokoukset ja tapahtumat <span>(${events.length})</span></li>` : ""}
       ${alerts.length > 0 ? `<li>Tiedotteet <span>(${alerts.length})</span></li>` : ""}
       ${
         articles.length > 0
@@ -168,7 +256,7 @@ export async function buildZineHtml(params: {
       ? ""
       : `
   <section class="alerts">
-    <h2 class="section-title">Tiedotteet</h2>
+    ${sectionTitle("Tiedotteet")}
     <div class="alert-grid">
       ${alerts
         .map(
@@ -189,7 +277,7 @@ export async function buildZineHtml(params: {
       ? ""
       : `
   <section class="articles">
-    <h2 class="section-title">Artikkelit</h2>
+    ${sectionTitle("Artikkelit")}
     ${articles
       .map(
         (a) => `
@@ -206,7 +294,7 @@ export async function buildZineHtml(params: {
   const servicesWithNews = services.filter((s) => s.experiences.length > 0);
   const servicesHtml = `
   <section class="directory">
-    <h2 class="section-title">Tampereen palvelut</h2>
+    ${sectionTitle("Tampereen palvelut")}
     <p class="section-lead">
       Hakemisto Tampereen päihde- ja mielenterveyspalveluista, järjestöistä ja vertaistuesta.
       Tämä ei ole kattava lista — täydennämme sitä sitä mukaa kun tietoa kertyy.
@@ -257,24 +345,26 @@ export async function buildZineHtml(params: {
 
   const meetingsHtml = `
   <section class="directory">
-    <h2 class="section-title">Tampereen NA-ryhmät</h2>
+    ${sectionTitle("Tampereen NA-ryhmät")}
     <div class="na-intro">
       ${NA_INTRO_PARAGRAPHS.map((para) => `<p>${esc(para)}</p>`).join("")}
     </div>
-    <div class="dir-list">
+    <div class="tel-book">
       ${groupByWeekday(meetings)
         .map(
           ([weekday, group]) => `
-        <h4 class="dir-category">${esc(weekday)}</h4>
-        ${group
-          .map(
-            (m) => `
-          <div class="dir-row">
-            <strong>klo ${esc(m.time)} · ${esc(m.name)}</strong>
-            ${m.address ? esc(m.address) : ""}
-          </div>`,
-          )
-          .join("")}`,
+        <div class="dir-group">
+          <h4 class="tel-category">${esc(weekday)}</h4>
+          ${group
+            .map(
+              (m) => `
+            <div class="dir-row">
+              <strong>klo ${esc(m.time)} · ${esc(m.name)}</strong>
+              ${m.address ? esc(m.address) : ""}
+            </div>`,
+            )
+            .join("")}
+        </div>`,
         )
         .join("")}
     </div>
@@ -289,18 +379,22 @@ export async function buildZineHtml(params: {
     <p class="final-question">Haluatko kirjoituksesi seuraavaan lehteen?</p>
     <p>Ota yhteyttä sähköpostitse: <strong>${esc(settings.submissionEmail)}</strong></p>
     <p class="final-alt">Tai pyydä lehden jakajaa kirjaamaan ylös kuulumisesi!</p>
+    <div class="final-mark">${candleMarkSvg("candle-mark")}</div>
+    <p class="final-name">${esc(ZINE_NAME)}</p>
   </section>`;
 
   return `<!doctype html>
 <html lang="fi">
 <head>
 <meta charset="utf-8" />
-<title>Viikkolehti ${esc(dateRange)}</title>
+<title>${esc(ZINE_NAME)} ${esc(dateRange)}</title>
 <style>${zineCss(mode)}</style>
 </head>
 <body>
 <div class="sheet">
 ${coverHtml}
+${infoHtml}
+${eventsHtml}
 ${indexHtml}
 ${alertsHtml}
 ${articlesHtml}
@@ -330,20 +424,37 @@ function groupByWeekday(meetings: NaMeeting[]): [string, NaMeeting[]][] {
   return [...map.entries()];
 }
 
+/**
+ * The paper's look: condensed poster headlines, a typewriter hand for every
+ * date, byline and number, and a serif for reading — the three voices a
+ * photocopied street paper has always had.
+ *
+ * Two constraints shape all of it. Fonts must be ones a bare Linux container
+ * actually has (the Dockerfile installs fonts-liberation, whose Narrow and
+ * Mono faces are what the display and mono stacks resolve to; everything
+ * else in each stack is a fallback for whoever previews in a browser). And
+ * it gets printed on whatever machine is to hand, so the weight comes from
+ * rules, outlines and white space rather than from filled areas — a solid
+ * panel is only ever a thin bar or a small tag, never a field.
+ */
 function zineCss(mode: "preview" | "print"): string {
   return `
     :root {
-      --ink: #1e1b29;
+      --ink: #1a1723;
       --accent: #7137e3;
       --accent-2: #2f8fe0;
       --paper: #fffdfe;
       --muted: #6b6478;
-      --line: #e3ddf0;
+      --line: #d9d2e8;
+      --display: "Liberation Sans Narrow", "Arial Narrow", "Helvetica Neue Condensed",
+        "Nimbus Sans Narrow", Impact, "Haettenschweiler", Arial, sans-serif;
+      --body: "Liberation Serif", Georgia, "Iowan Old Style", "Times New Roman", serif;
+      --mono: "Liberation Mono", "Courier New", "Nimbus Mono PS", monospace;
     }
     * { box-sizing: border-box; }
     body {
       margin: 0;
-      font-family: "Georgia", "Iowan Old Style", serif;
+      font-family: var(--body);
       color: var(--ink);
       background: ${mode === "preview" ? "#e3ddef" : "var(--paper)"};
     }
@@ -351,105 +462,253 @@ function zineCss(mode: "preview" | "print"): string {
       background: var(--paper);
       ${mode === "preview" ? "max-width: 210mm; margin: 24px auto; padding: 18mm 15mm; box-shadow: 0 4px 24px rgba(0,0,0,0.25);" : "padding: 0;"}
     }
-    h1, h2, h3, h4 { font-family: "Helvetica Neue", Arial, sans-serif; margin: 0 0 0.3em; break-after: avoid; }
+    h1, h2, h3, h4 { font-family: var(--display); margin: 0 0 0.3em; break-after: avoid; }
     p { orphans: 3; widows: 3; }
-    .muted { color: var(--muted); font-size: 13px; }
+    .muted { color: var(--muted); font-size: 13px; font-family: var(--mono); }
 
+    /* ---- cover: the paper's name and mark, nothing else ---- */
     .cover {
-      text-align: center;
-      padding: 10mm 0 14mm;
-      border-bottom: 4px solid var(--accent);
-      margin-bottom: 10mm;
       page-break-after: always;
       break-after: page;
+      height: 245mm;
+      display: flex;
+      align-items: center;
+      justify-content: center;
     }
-    .cover-logo { max-height: 30mm; margin-bottom: 6mm; }
-    .cover-range { text-transform: uppercase; letter-spacing: 0.12em; color: var(--accent-2); font-weight: 700; font-size: 12px; }
-    .cover-title { font-size: 30px; color: var(--ink); margin-top: 4px; margin-bottom: 8mm; }
-    .cover-about { text-align: left; max-width: 140mm; margin: 0 auto; font-size: 13px; line-height: 1.6; }
-    .cover-about p { margin: 0 0 0.8em; }
-
-    .index-page { page-break-after: always; break-after: page; }
-    .index-list { list-style: none; padding: 0; font-size: 15px; line-height: 2; }
-    .index-list > li { border-bottom: 1px solid var(--line); padding: 2mm 0; }
-    .index-list span { color: var(--muted); font-size: 12px; }
-    .index-list ul { list-style: none; padding: 1mm 0 1mm 6mm; margin: 0; font-size: 12px; color: var(--muted); line-height: 1.6; }
-
-    .section-title {
+    .cover-frame {
+      width: 100%;
+      text-align: center;
+      border-top: 4mm solid var(--ink);
+      border-bottom: 1.2mm solid var(--ink);
+      padding: 12mm 6mm 10mm;
+      position: relative;
+    }
+    .cover-mark { color: var(--ink); margin-bottom: 7mm; }
+    .cover-mark .candle-mark { height: 46mm; width: auto; }
+    .cover-title {
+      font-family: var(--display);
+      font-size: 76px;
+      /* Poster-tight, but not tighter: at much under 1.0 the umlaut of a
+         second-line Ä rides up into the line above and reads as a typo,
+         and this is Finnish — nearly every headline has one. */
+      line-height: 0.98;
+      letter-spacing: -0.015em;
+      text-transform: uppercase;
+      margin: 0 0 6mm;
+    }
+    .cover-rules { display: flex; flex-direction: column; gap: 1.2mm; align-items: center; margin-bottom: 5mm; }
+    .cover-rules span { display: block; height: 1px; background: var(--ink); width: 70%; }
+    .cover-rules span:first-child { height: 2.2mm; background: var(--accent); width: 46%; }
+    .cover-tagline {
+      font-family: var(--mono);
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.22em;
+      margin: 0 0 3mm;
+    }
+    .cover-date { font-family: var(--display); font-size: 21px; letter-spacing: 0.08em; margin: 0; }
+    .cover-stamp {
+      position: absolute;
+      right: 2mm;
+      bottom: -7mm;
+      transform: rotate(-4deg);
+      border: 1.2mm solid var(--accent);
+      color: var(--accent);
+      font-family: var(--display);
       font-size: 13px;
       text-transform: uppercase;
-      letter-spacing: 0.1em;
-      color: #fff;
-      background: var(--accent);
-      display: inline-block;
-      padding: 3px 10px;
-      margin-bottom: 6mm;
+      letter-spacing: 0.14em;
+      padding: 1.5mm 3mm;
+      background: var(--paper);
     }
-    .subsection-title { font-size: 15px; margin-top: 8mm; margin-bottom: 3mm; }
-    .section-lead { font-size: 11.5px; line-height: 1.5; color: var(--muted); margin: 0 0 5mm; max-width: 150mm; }
 
-    .na-intro {
-      font-size: 12px;
-      line-height: 1.55;
-      margin-bottom: 7mm;
-      padding-left: 4mm;
-      border-left: 3px solid var(--accent);
+    /* ---- section heads: two rules and a flame, cheap to print ---- */
+    .section-title {
+      font-size: 30px;
+      line-height: 1.05;
+      text-transform: uppercase;
+      letter-spacing: 0.02em;
+      border-top: 2.5mm solid var(--ink);
+      border-bottom: 0.5mm solid var(--ink);
+      padding: 2mm 0 1.5mm;
+      margin: 0 0 5mm;
+      display: flex;
+      align-items: center;
+      gap: 2.5mm;
+    }
+    .section-flame { height: 8mm; width: auto; color: var(--accent); flex-shrink: 0; }
+    .subsection-title {
+      font-size: 18px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-top: 8mm;
+      margin-bottom: 3mm;
+      border-bottom: 0.4mm solid var(--ink);
+      padding-bottom: 1mm;
+    }
+    .section-lead {
+      font-family: var(--mono);
+      font-size: 10.5px;
+      line-height: 1.5;
+      margin: 0 0 5mm;
       max-width: 150mm;
-      break-inside: avoid;
     }
-    .na-intro p { margin: 0 0 0.7em; }
-    .na-intro p:last-child { margin-bottom: 0; }
 
+    /* ---- who we are ---- */
+    .info-page { page-break-before: always; break-before: page; }
+    .info-logo { max-height: 34mm; margin-bottom: 6mm; }
+    .info-body { font-size: 14px; line-height: 1.62; max-width: 155mm; }
+    .info-body p { margin: 0 0 0.85em; }
+    .info-contact {
+      margin-top: 8mm;
+      border-top: 0.4mm dashed var(--ink);
+      padding-top: 3mm;
+      font-family: var(--mono);
+      font-size: 11px;
+      max-width: 155mm;
+    }
+    .info-contact p { margin: 0 0 1.5mm; }
+    .info-contact span {
+      display: inline-block;
+      min-width: 26mm;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      color: var(--accent);
+    }
+    .info-body p:first-of-type::first-letter {
+      float: left;
+      font-family: var(--display);
+      font-size: 54px;
+      line-height: 0.8;
+      padding: 1mm 2mm 0 0;
+      color: var(--accent);
+    }
+
+    /* ---- the community's own calendar ---- */
+    .events { page-break-before: always; break-before: page; }
+    .event-list { display: flex; flex-direction: column; }
+    .event {
+      display: grid;
+      grid-template-columns: 34mm 1fr;
+      gap: 5mm;
+      padding: 4mm 0;
+      border-top: 0.4mm dashed var(--ink);
+      break-inside: avoid;
+      page-break-inside: avoid;
+    }
+    .event:last-child { border-bottom: 0.4mm dashed var(--ink); }
+    .event-when { font-family: var(--display); text-transform: uppercase; line-height: 1.1; }
+    .event-day { display: block; font-size: 21px; letter-spacing: 0.02em; }
+    .event-time { display: block; font-size: 13px; color: var(--accent); letter-spacing: 0.06em; }
+    .event-title { font-size: 21px; margin: 0 0 1mm; }
+    .event-where {
+      font-family: var(--mono);
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      margin-bottom: 1.5mm;
+    }
+    .event-body { font-size: 12.5px; line-height: 1.45; margin: 0; }
+
+    /* ---- contents ---- */
+    .index-page { page-break-before: always; break-before: page; }
+    .index-list { list-style: none; padding: 0; font-family: var(--display); font-size: 20px; text-transform: uppercase; }
+    .index-list > li { border-bottom: 0.3mm dotted var(--ink); padding: 2.5mm 0; }
+    .index-list span { color: var(--accent); font-size: 14px; }
+    .index-list ul {
+      list-style: none;
+      padding: 1.5mm 0 0 6mm;
+      margin: 0;
+      font-family: var(--body);
+      font-size: 12px;
+      text-transform: none;
+      color: var(--muted);
+      line-height: 1.5;
+    }
+
+    /* ---- service announcements ---- */
     .alerts { page-break-before: always; break-before: page; margin-bottom: 10mm; }
     .alert-grid { display: flex; flex-direction: column; gap: 5mm; }
     .alert-card {
-      border: 1px solid var(--line);
-      border-left: 4px solid var(--accent-2);
+      border: 0.4mm dashed var(--ink);
+      border-left: 1.2mm solid var(--accent-2);
       padding: 4mm 5mm;
       break-inside: avoid;
       page-break-inside: avoid;
     }
-    .alert-service { font-size: 10px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--accent-2); font-weight: 700; font-family: "Helvetica Neue", Arial, sans-serif; }
-    .alert-title { font-size: 16px; margin: 2px 0 3px; }
-    .alert-body { font-size: 13px; margin: 0; line-height: 1.4; }
-    .alert-dates { font-size: 10px; color: var(--muted); margin-top: 3px; font-family: "Helvetica Neue", Arial, sans-serif; }
+    .alert-service {
+      font-family: var(--mono);
+      font-size: 9.5px;
+      text-transform: uppercase;
+      letter-spacing: 0.14em;
+      color: var(--accent-2);
+    }
+    .alert-title { font-size: 20px; margin: 1mm 0 1.5mm; text-transform: uppercase; }
+    .alert-body { font-size: 13px; margin: 0; line-height: 1.45; }
+    .alert-dates { font-family: var(--mono); font-size: 9.5px; color: var(--muted); margin-top: 2mm; }
 
+    /* ---- articles ---- */
     .articles { page-break-before: always; break-before: page; display: flex; flex-direction: column; gap: 10mm; }
     .article { break-inside: avoid-page; }
-    .article-title { font-size: 22px; }
-    .article-byline { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.06em; font-family: "Helvetica Neue", Arial, sans-serif; margin-bottom: 4mm; }
-    .article-image { width: 100%; max-height: 90mm; object-fit: cover; margin-bottom: 4mm; }
-    .article-body { font-size: 14px; line-height: 1.6; }
-    .article-body p { margin: 0 0 0.8em; }
-    .article-body img { max-width: 100%; }
-    .article-body h1, .article-body h2, .article-body h3 { font-size: 1.1em; margin-top: 1em; }
-
-    .directory { page-break-before: always; break-before: page; }
-    .dir-list { column-count: 1; font-size: 11px; line-height: 1.5; }
-    .dir-category {
-      font-size: 12px;
+    .article-title { font-size: 34px; line-height: 1.02; text-transform: uppercase; }
+    .article-byline {
+      font-family: var(--mono);
+      font-size: 10px;
+      color: var(--ink);
       text-transform: uppercase;
-      letter-spacing: 0.06em;
-      color: var(--accent-2);
-      margin-top: 5mm;
-      margin-bottom: 1mm;
-      break-after: avoid;
+      letter-spacing: 0.16em;
+      border-bottom: 0.4mm solid var(--ink);
+      padding-bottom: 1.5mm;
+      margin-bottom: 4mm;
     }
-    .dir-row { break-inside: avoid; padding: 0.6mm 0; }
-    .dir-row strong { margin-right: 4px; }
+    .article-image { width: 100%; max-height: 90mm; object-fit: cover; margin-bottom: 4mm; }
+    .article-body { font-size: 14px; line-height: 1.62; }
+    .article-body p { margin: 0 0 0.85em; }
+    .article-body > p:first-child::first-letter {
+      float: left;
+      font-family: var(--display);
+      font-size: 54px;
+      line-height: 0.8;
+      padding: 1mm 2mm 0 0;
+      color: var(--accent);
+    }
+    .article-body img { max-width: 100%; }
+    .article-body h1, .article-body h2, .article-body h3 {
+      font-size: 1.15em;
+      text-transform: uppercase;
+      margin-top: 1em;
+    }
+
+    /* ---- directories ---- */
+    .directory { page-break-before: always; break-before: page; }
+    /* A meeting time separated from its weekday heading by a column break
+       is worse than a slightly uneven column, so each weekday travels as
+       one block. Service categories can't do this — one of them runs to 55
+       entries — but a service entry carries its own name and number, so it
+       still reads on its own. */
+    .dir-group { break-inside: avoid; page-break-inside: avoid; }
+    .dir-row {
+      break-inside: avoid;
+      page-break-inside: avoid;
+      padding: 0.9mm 0;
+      font-size: 10px;
+      line-height: 1.4;
+      border-bottom: 0.3mm dotted var(--line);
+    }
+    .dir-row strong { margin-right: 4px; font-family: var(--display); font-size: 12px; text-transform: uppercase; }
 
     /* Phonebook listing for Tampereen palvelut: two columns of
        name / short description / phone entries, kept dense because the
        directory is long and still growing. */
-    .tel-book { column-count: 2; column-gap: 7mm; column-rule: 1px solid var(--line); }
+    .tel-book { column-count: 2; column-gap: 7mm; column-rule: 0.3mm solid var(--line); }
     .tel-category {
-      font-size: 10px;
+      font-size: 13px;
       text-transform: uppercase;
-      letter-spacing: 0.06em;
-      color: #fff;
-      background: var(--accent-2);
-      padding: 1mm 2mm;
-      margin: 4mm 0 1.5mm;
+      letter-spacing: 0.08em;
+      border-top: 0.8mm solid var(--ink);
+      border-bottom: 0.3mm solid var(--ink);
+      padding: 1mm 0;
+      margin: 5mm 0 2mm;
       break-after: avoid;
       page-break-after: avoid;
     }
@@ -458,18 +717,19 @@ function zineCss(mode: "preview" | "print"): string {
       break-inside: avoid;
       page-break-inside: avoid;
       padding: 1.1mm 0;
-      border-bottom: 1px dotted var(--line);
+      border-bottom: 0.3mm dotted var(--line);
     }
     .tel-head { display: flex; align-items: baseline; justify-content: space-between; gap: 3mm; }
-    .tel-name { min-width: 0; }
     .tel-name {
-      font-family: "Helvetica Neue", Arial, sans-serif;
-      font-size: 10px;
+      min-width: 0;
+      font-family: var(--display);
+      font-size: 12px;
       font-weight: 700;
-      line-height: 1.3;
+      line-height: 1.2;
+      text-transform: uppercase;
     }
     .tel-number {
-      font-family: "Helvetica Neue", Arial, sans-serif;
+      font-family: var(--mono);
       font-size: 10px;
       font-weight: 700;
       color: var(--accent);
@@ -477,12 +737,32 @@ function zineCss(mode: "preview" | "print"): string {
       flex-shrink: 0;
     }
     .tel-desc { font-size: 9.5px; line-height: 1.35; margin-top: 0.3mm; }
-    .tel-addr { font-size: 9px; line-height: 1.3; color: var(--muted); margin-top: 0.2mm; }
+    .tel-addr { font-family: var(--mono); font-size: 8.5px; line-height: 1.3; color: var(--muted); margin-top: 0.3mm; }
 
+    .na-intro {
+      font-size: 12.5px;
+      line-height: 1.55;
+      margin-bottom: 7mm;
+      padding-left: 4mm;
+      border-left: 1.2mm solid var(--accent);
+      max-width: 150mm;
+      break-inside: avoid;
+    }
+    .na-intro p { margin: 0 0 0.7em; }
+    .na-intro p:last-child { margin-bottom: 0; }
+
+    /* ---- Kokemukset ---- */
     .kokemus-grid { display: flex; flex-direction: column; gap: 3mm; }
-    .kokemus-group { break-inside: avoid; border-left: 3px solid var(--accent-2); padding: 1mm 0 1mm 4mm; }
-    .kokemus-target { font-size: 11px; font-weight: 700; color: var(--accent-2); font-family: "Helvetica Neue", Arial, sans-serif; }
-    .kokemus-body { font-size: 12px; margin: 1mm 0; line-height: 1.4; }
+    .kokemus-group { break-inside: avoid; border-left: 1mm solid var(--accent-2); padding: 1mm 0 1mm 4mm; }
+    .kokemus-target {
+      font-family: var(--mono);
+      font-size: 10px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: var(--accent-2);
+    }
+    .kokemus-body { font-size: 12px; margin: 1mm 0; line-height: 1.45; }
 
     /* Kept deliberately small: it trails a section that ends wherever the
        content happens to end, and as an unbreakable block a taller one
@@ -492,23 +772,42 @@ function zineCss(mode: "preview" | "print"): string {
       display: flex;
       align-items: center;
       gap: 3mm;
-      border-top: 1px solid var(--line);
+      border-top: 0.4mm dashed var(--ink);
       padding-top: 3mm;
       break-inside: avoid;
     }
-    .kokemukset-cta p { font-size: 11px; margin: 0; }
+    .kokemukset-cta p { font-family: var(--mono); font-size: 10px; margin: 0; line-height: 1.45; }
     .cta-qr { width: 16mm; height: 16mm; flex-shrink: 0; }
     .cta-qr svg { width: 100%; height: 100%; }
     .cta-qr.large { width: 35mm; height: 35mm; margin: 0 auto 6mm; }
 
+    /* ---- closing page ---- */
     .final-page {
       page-break-before: always;
       break-before: page;
       text-align: center;
-      padding-top: 40mm;
+      padding-top: 34mm;
     }
-    .final-question { font-size: 20px; font-weight: 700; max-width: 130mm; margin: 0 auto 4mm; }
+    /* Scoped through .final-page so the generic ".final-page p" size below
+       cannot out-specify it. */
+    .final-page .final-question {
+      font-family: var(--display);
+      font-size: 30px;
+      line-height: 1.05;
+      text-transform: uppercase;
+      max-width: 130mm;
+      margin: 0 auto 4mm;
+    }
     .final-page p { font-size: 14px; }
-    .final-alt { max-width: 120mm; margin: 4mm auto 0; font-weight: 700; color: var(--accent); }
+    .final-alt { max-width: 125mm; margin: 4mm auto 0; font-weight: 700; color: var(--accent); }
+    .final-mark { margin-top: 16mm; color: var(--ink); }
+    .final-mark .candle-mark { height: 22mm; width: auto; }
+    .final-name {
+      font-family: var(--display);
+      font-size: 16px;
+      text-transform: uppercase;
+      letter-spacing: 0.24em;
+      margin: 3mm 0 0;
+    }
   `;
 }

@@ -15,7 +15,7 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: "Tampereen Käyttäjäyhteisö",
-  description: "Ilmoitukset, artikkelit ja viikkolehti Tampereen Käyttäjäyhteisöltä.",
+  description: "Ilmoitukset, artikkelit ja Kynttilä pimeydessä -lehti Tampereen Käyttäjäyhteisöltä.",
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {

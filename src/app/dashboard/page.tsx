@@ -33,7 +33,7 @@ export default async function DashboardPage() {
             Ylläpito
           </p>
           <div className="flex flex-wrap gap-3 text-sm">
-            <Link href="/admin/viikkolehti" className="underline">Viikkolehdet</Link>
+            <Link href="/admin/lehti" className="underline">Lehdet</Link>
             <Link href="/admin/kayttajat" className="underline">Käyttäjät</Link>
             <Link href="/admin/kokemukset" className="underline">Kokemukset</Link>
             <Link href="/admin/asetukset" className="underline">Asetukset</Link>
@@ -45,7 +45,7 @@ export default async function DashboardPage() {
         <p className="text-xs uppercase tracking-wide text-muted">Tuleva lehti</p>
         <p className="text-xl font-bold">{formatDateRange(edition.startDate, edition.endDate)}</p>
         <Link
-          href="/dashboard/viikkolehti"
+          href="/dashboard/lehti"
           className="mt-2 inline-block rounded bg-accent-2 px-3 py-1.5 text-sm font-semibold text-white"
         >
           Esikatsele
@@ -59,12 +59,13 @@ export default async function DashboardPage() {
             <LinkCard href="/dashboard/ilmoitukset" label="Omat ilmoitukset" />
             <LinkCard href="/dashboard/ilmoitukset?muut=1" label="Muiden palveluiden ilmoitukset" />
             <LinkCard href="/dashboard/kierrokset" label="Katukierrosten havainnot" />
-            <LinkCard href="/dashboard/viikkolehti" label="Tuleva viikkolehti" />
+            <LinkCard href="/dashboard/lehti" label="Tuleva lehti" />
           </div>
         </>
       ) : (
         <div className="grid gap-4 sm:grid-cols-2">
           <BigButton href="/dashboard/artikkelit/uusi" label="Kirjoita artikkeli" />
+          <BigButton href="/dashboard/tapahtumat/uusi" label="Lisää tapahtuma" />
           <BigButton href="/dashboard/kierrokset/uusi" label="Kirjaa katukierros" />
         </div>
       )}

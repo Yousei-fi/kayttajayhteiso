@@ -1,11 +1,13 @@
 import Link from "next/link";
 import { prisma } from "@/lib/db";
-import { formatDate, formatDateRange } from "@/lib/week";
+import { formatDate, formatDateRange, formatDateTime } from "@/lib/week";
+import { ZINE_NAME } from "@/lib/zine-brand";
+import { CandleMark } from "@/components/icons";
 
 export default async function HomePage() {
   const now = new Date();
 
-  const [alerts, articles, edition] = await Promise.all([
+  const [alerts, articles, edition, events] = await Promise.all([
     prisma.alert.findMany({
       where: { archived: false, OR: [{ validUntil: null }, { validUntil: { gte: now } }] },
       orderBy: { createdAt: "desc" },
@@ -19,23 +21,29 @@ export default async function HomePage() {
       include: { author: true },
     }),
     prisma.zineEdition.findFirst({ where: { status: "FINAL" }, orderBy: { startDate: "desc" } }),
+    prisma.communityEvent.findMany({
+      where: { OR: [{ endsAt: { gte: now } }, { endsAt: null, startsAt: { gte: now } }] },
+      orderBy: { startsAt: "asc" },
+      take: 3,
+    }),
   ]);
 
   return (
     <main className="mx-auto max-w-3xl px-4 py-8">
       <section className="mb-10 rounded-lg border border-line bg-paper p-6">
         <p className="text-xs font-semibold uppercase tracking-wide text-accent-2">Tampereen Käyttäjäyhteisö</p>
-        <h1 className="mt-1 text-3xl font-bold">Ilmoituksia, artikkeleita ja viikkolehti</h1>
+        <h1 className="mt-1 text-3xl font-bold">Ilmoituksia, artikkeleita ja oma lehti</h1>
         <p className="mt-2 text-sm text-muted">
           Kokoamme tähän Tampereen päihdepalveluiden ajankohtaiset ilmoitukset ja yhteisömme kirjoituksia.
-          Painettu viikkolehti kootaan näistä joka viikko.
+          Näistä kootaan painettu lehtemme <strong>{ZINE_NAME}</strong>.
         </p>
         {edition && (
           <Link
-            href="/viikkolehti"
+            href="/lehti"
             className="mt-4 inline-block rounded bg-accent px-4 py-2 font-semibold text-white"
           >
-            Lue tämän viikon lehti ({formatDateRange(edition.startDate, edition.endDate)})
+            <CandleMark className="mr-2 inline-block h-5 w-auto align-text-bottom" />
+            Lue uusin {ZINE_NAME} ({formatDateRange(edition.startDate, edition.endDate)})
           </Link>
         )}
       </section>
@@ -54,6 +62,23 @@ export default async function HomePage() {
             </li>
           ))}
           {alerts.length === 0 && <p className="text-sm text-muted">Ei ajankohtaisia ilmoituksia juuri nyt.</p>}
+        </ul>
+      </section>
+
+      <section className="mb-10">
+        <div className="mb-3 flex items-center justify-between">
+          <h2 className="text-lg font-bold">Käyttäjäyhteisön kokoukset ja tapahtumat</h2>
+          <Link href="/tapahtumat" className="text-sm text-accent-2 underline">Kaikki tapahtumat</Link>
+        </div>
+        <ul className="flex flex-col gap-2">
+          {events.map((e) => (
+            <li key={e.id} className="rounded border border-line bg-paper p-3">
+              <p className="text-xs uppercase tracking-wide text-accent-2">{formatDateTime(e.startsAt)}</p>
+              <p className="font-semibold">{e.title}</p>
+              {e.location && <p className="text-xs text-muted">{e.location}</p>}
+            </li>
+          ))}
+          {events.length === 0 && <p className="text-sm text-muted">Ei tulevia tapahtumia juuri nyt.</p>}
         </ul>
       </section>
 
@@ -97,8 +122,8 @@ export default async function HomePage() {
       </section>
 
       <section>
-        <Link href="/viikkolehti/arkisto" className="text-sm text-accent-2 underline">
-          Selaa aiempia viikkolehtiä
+        <Link href="/lehti/arkisto" className="text-sm text-accent-2 underline">
+          Selaa aiempia lehtiä
         </Link>
       </section>
     </main>

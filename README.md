@@ -42,7 +42,7 @@ npm run db:studio    # browse/edit the data in a GUI (prisma studio)
 npm run db:seed      # (re-)insert demo data
 ```
 
-The schema (`prisma/schema.prisma`) has six models: `User`, `Session`, `Alert`, `Article`, `StreetRound`, `ZineEdition` + `ZineItem`, and a singleton `SiteSettings`. `ZineItem` rows are a **snapshot** (title/body/author/image copied in at sync or finalize time) — editing an article or alert later never changes a zine edition that already includes it, and a finalized edition is frozen for good.
+The schema (`prisma/schema.prisma`) has these models: `User`, `Session`, `Alert`, `Article`, `CommunityEvent`, `StreetRound`, `ZineEdition` + `ZineItem`, and a singleton `SiteSettings`. `ZineItem` rows are a **snapshot** (title/body/author/image copied in at sync or finalize time) — editing an article or alert later never changes a zine edition that already includes it, and a finalized edition is frozen for good.
 
 ## Demo / seed data
 
@@ -56,7 +56,7 @@ All demo accounts share the password printed by the seed script: `kayttajayhteis
 
 ## Accounts and roles
 
-There are exactly three roles (`User.role`): `ADMIN`, `MEMBER`, `SERVICE`. There is no public registration — an admin creates every account from `/admin/kayttajat` (name, email, role, initial password; service accounts also get a `serviceName`). This is intentional: the spec calls for maybe 50 relevant services total, so manual account creation is far simpler than building a self-serve signup/approval flow.
+There are exactly three roles (`User.role`): `ADMIN`, `MEMBER`, `SERVICE`. Members write articles, log street rounds and post the community's meetings and events; service accounts post alerts; admins do all of that plus user management, moderation, settings, and curating and publishing each issue. There is no public registration — an admin creates every account from `/admin/kayttajat` (name, email, role, initial password; service accounts also get a `serviceName`). This is intentional: the spec calls for maybe 50 relevant services total, so manual account creation is far simpler than building a self-serve signup/approval flow.
 
 That admin page needs an existing admin to be logged in. For the very first admin — or to recover access if every admin account is locked out — use the CLI script instead, which needs no login:
 
@@ -72,18 +72,24 @@ Running it with an email that already exists promotes that account to `ADMIN`, r
 - **Service** — posts/edits/archives its own alerts, sees other services' alerts, reads street-round notes (the feedback loop), can preview the upcoming zine.
 - **Admin** — everything above, plus user management, the zine editor (reorder/exclude/finalize/PDF), and site settings/branding.
 
-## How the weekly zine works
+## How the paper works
 
-1. Whenever a page needing "the upcoming edition" is loaded (dashboard, `/admin`, `/admin/viikkolehti`, etc.), the app finds-or-creates a `DRAFT` `ZineEdition` for the next Monday–Sunday period and **syncs** its items: every non-archived `Alert` with `includeInZine = true` and every `PUBLISHED` `Article` with `includeInZine = true` gets a `ZineItem` row if it doesn't have one yet, existing items get their snapshot refreshed, and items that no longer qualify are dropped. This is what "alerts and articles automatically flow into the zine" means in code — see `src/lib/zine.ts`.
-2. An admin opens `/admin/viikkolehti/<id>` to reorder Tiedotteet/Artikkelit items (up/down) and exclude one from this edition (exclusions stick — a re-sync won't bring an excluded item back). The Tampereen palvelut / NA-ryhmät sections aren't part of this curation — they're always the full current directory, described below.
+The paper is called **Kynttilä pimeydessä** ("a candle in the darkness", after Carl Sagan) — the name, strapline and candle mark live in `src/lib/zine-brand.ts` and are shared by the printed pages and the site. Its routes are `/lehti`, `/admin/lehti` and `/dashboard/lehti`; the model names (`ZineEdition`, `ZineItem`) stay generic on purpose, so renaming the paper again wouldn't mean a migration.
+
+1. Whenever a page needing "the upcoming edition" is loaded (dashboard, `/admin`, `/admin/lehti`, etc.), the app finds-or-creates a `DRAFT` `ZineEdition` for the next Monday–Sunday period and **syncs** its items into `ZineItem` rows, refreshing snapshots and dropping whatever no longer qualifies. Each content type has its own window (`src/lib/zine.ts`): non-archived **alerts** marked `includeInZine` qualify for the edition's week; **articles** that are `PUBLISHED` and marked `includeInZine` qualify for the *month* up to the edition (`articleWindowStart`), so one article can run in several consecutive issues before ageing out rather than leaving thin issues; **community events** marked `includeInZine` qualify while they are still ahead of the edition, however far ahead.
+2. An admin opens `/admin/lehti/<id>` to reorder Tiedotteet/Artikkelit items (up/down) and exclude one from this edition (exclusions stick — a re-sync won't bring an excluded item back). The Tampereen palvelut / NA-ryhmät sections aren't part of this curation — they're always the full current directory, described below. Events are exempt from the *ordering* too: they always print chronologically, since a calendar in date-jumbled order is useless on paper. Excluding one still works.
 3. **Julkaise lehti** (finalize) re-syncs one last time and flips the edition to `FINAL`. From that point its `ZineItem` snapshots are frozen — later edits to the source article/alert never change a published edition.
-4. **Luo PDF** renders the same edition through `src/lib/zine-html.ts` → Puppeteer → an A4 PDF with page numbers, saved and linked from the edition page, the public `/viikkolehti` page, and the archive.
+4. **Luo PDF** renders the same edition through `src/lib/zine-html.ts` → Puppeteer → an A4 PDF with page numbers, saved and linked from the edition page, the public `/lehti` page, and the archive.
 
-The public site shows the latest `FINAL` edition at `/viikkolehti` and older ones at `/viikkolehti/arkisto`. Street round notes never appear in either place — they're gated behind login everywhere (`/dashboard/kierrokset`).
+The public site shows the latest `FINAL` edition at `/lehti` and older ones at `/lehti/arkisto`. Street round notes never appear in either place — they're gated behind login everywhere (`/dashboard/kierrokset`).
 
 ### Zine page order
 
-Cover (logo + the `/tietoa` about text) → Sisällys (a simple contents list, no page numbers — see below) → Tiedotteet (alerts, omitted entirely if none) → Artikkelit (omitted if none) → Tampereen palvelut → Tampereen NA-ryhmät → a closing "write for the next issue" page.
+Cover (the paper's name and candle mark, nothing else) → **Tampereen Käyttäjäyhteisö** (the `/tietoa` about text, the logo, and the contact/social details from `/admin/asetukset`) → **Kokoukset ja tapahtumat** (the community's own calendar, omitted if none) → Sisällys (a simple contents list, no page numbers — see below) → Tiedotteet (alerts, omitted entirely if none) → Artikkelit (omitted if none) → Tampereen palvelut → Tampereen NA-ryhmät → a closing "write for the next issue" page.
+
+**Tampereen palvelut** is set as a two-column phonebook — name / short description / phone — because the directory is ~122 entries and grows as they get filled in. Most entries repeat their own number in their description ("Puhelin: 116 117 Kiireelliset…"), so `shortDescription` strips the number and its label before clipping the text at a word boundary, and `phoneNumber` keeps only the dialable part of a phone field that also carries opening hours. The NA listing is two-column too, but each weekday travels as one unbreakable block: a meeting time separated from its weekday heading by a column break would be ambiguous, where a service entry still reads on its own.
+
+**Look and ink.** Headlines are condensed poster caps, every date/byline/number is typewriter mono, body copy is serif. The stacks resolve to what `fonts-liberation` gives a bare container (Liberation Sans Narrow / Mono / Serif); everything after that in each stack is a fallback for browser previews. Because this gets photocopied, weight comes from rules, outlines and white space rather than filled areas — a solid panel is only ever a thin bar or a small tag, and the candle mark is line art with one small filled flame core. Keep that bargain when changing `zineCss`.
 
 The two directory sections (`src/lib/zine.ts`'s `getZineDirectorySections`) are handled differently from Tiedotteet/Artikkelit: the **listing** of all services/meetings is always the full current directory, fetched live rather than snapshotted into `ZineItem` — the directory itself barely changes and isn't something admins curate per edition. Only each entry's **Kokemukset** are time-scoped to the edition's Monday–Sunday window, under an "Uudet kokemukset tällä viikolla" heading; those rows are immutable historical records once posted, so a past edition's PDF shows the same ones every time it's regenerated (barring an admin later deleting one for abuse, which should propagate everywhere). Both directory sections end with the `publicSiteUrl` Kokemukset call-to-action and QR code; the closing page uses `submissionEmail` with a `mailto:` QR code. Both are edited at `/admin/asetukset`.
 
@@ -117,9 +123,15 @@ The same admin settings page (`/admin/asetukset`) also holds:
 
 `prisma/seed-reference.ts` runs on every boot (see below) and includes a narrow, one-time correction: if the single `SiteSettings` row still holds one of the exact placeholder values this project shipped with early on (the old `logo-placeholder.svg` path, or the placeholder email/Telegram handle), it's replaced with the real value. This exists because that row is created once and then only ever read with `update: {}` elsewhere — so an environment deployed before real content existed would otherwise keep showing stale placeholders forever, even after the code and defaults were fixed. The check is exact-value-only, so once a field holds anything else — including an admin's own edit — it's never touched again.
 
+## Käyttäjäyhteisön kokoukset ja tapahtumat
+
+The community's own calendar, as opposed to a service announcing something to its users (that's `Alert`). `MEMBER` and `ADMIN` accounts add entries at `/dashboard/tapahtumat` (title, start, optional end, optional location, description, and an "include in the paper" flag); a member can edit or delete their own, an admin anyone's. Entries are public at `/tapahtumat` and on the front page, and print in the paper immediately after the page introducing the organisation.
+
+An event is only ever shown while it is still ahead — everywhere it is filtered on `endsAt ?? startsAt`, so an all-day event that started this morning does not vanish at noon. Like alerts and articles, events are snapshotted into `ZineItem` (`contentType = EVENT`, with start/end/location carried in `metaSnapshot`), so a published edition keeps printing what it printed, and an admin can exclude one from an issue.
+
 ## Tampereen palvelut & Tampereen NA-ryhmät (public directories + maps)
 
-Two separate, much simpler features from alerts/articles/zine: public, no-login directories at `/palvelut` (Tampere drug/mental-health services) and `/na-ryhmat` (Tampere Narcotics Anonymous meetings), both sourced from external data rather than anything services manage themselves. Either kind of entry can have an anonymous public note attached — deliberately called **"Kokemus"** (experience), not "comment" — capped at 300 characters, with no account or author field. Both note types share one `Experience` model (`serviceId` or `meetingId`, exactly one set) and one moderation page.
+Two separate, much simpler features from alerts/articles/zine: public, no-login directories at `/palvelut` (Tampere drug/mental-health services) and `/na-ryhmat` (Tampere Narcotics Anonymous meetings), both sourced from external data rather than anything services manage themselves. A **service** entry can have an anonymous public note attached — deliberately called **"Kokemus"** (experience), not "comment" — capped at 300 characters, with no account or author field, stored as an `Experience` row and moderated at `/admin/kokemukset`. NA meetings used to accept these too; that was removed (a meeting is not a service to be reviewed), so nothing writes `Experience.meetingId` any more and no public page reads it — the column and the admin view stay so rows from back then can still be found and deleted.
 
 **Tampereen palvelut**:
 - **Data source**: `prisma/data/services-source.txt` (copied from the old project's `services.txt`) is parsed by `scripts/build-services-data.mjs` into `prisma/data/services.json`.

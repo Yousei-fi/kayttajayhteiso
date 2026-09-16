@@ -23,7 +23,7 @@ export default async function UusiArtikkeliPage() {
 
         <label className="flex items-center gap-2 text-sm font-medium">
           <input type="checkbox" name="includeInZine" defaultChecked />
-          Ehdota tulevaan viikkolehteen
+          Ehdota tulevaan lehteen
         </label>
 
         <div className="flex gap-3">

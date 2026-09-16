@@ -1,3 +1,4 @@
+import { ZINE_NAME } from "@/lib/zine-brand";
 import { requireUser } from "@/lib/auth";
 import { prisma } from "@/lib/db";
 import { getSyncedUpcomingEdition, getZineDirectorySections } from "@/lib/zine";
@@ -6,7 +7,7 @@ import { buildZineHtml } from "@/lib/zine-html";
 import { formatDateRange } from "@/lib/week";
 import Link from "next/link";
 
-export default async function TulevaViikkolehtiPage() {
+export default async function TulevaLehtiPage() {
   const user = await requireUser("MEMBER", "SERVICE", "ADMIN");
   const edition = await getSyncedUpcomingEdition();
   const [items, settings, { services, meetings }] = await Promise.all([
@@ -21,10 +22,10 @@ export default async function TulevaViikkolehtiPage() {
     <div>
       <div className="mb-4 flex items-center justify-between">
         <h1 className="text-xl font-bold">
-          Tuleva viikkolehti {formatDateRange(edition.startDate, edition.endDate)}
+          Tuleva {ZINE_NAME} {formatDateRange(edition.startDate, edition.endDate)}
         </h1>
         {user.role === "ADMIN" && (
-          <Link href={`/admin/viikkolehti/${edition.id}`} className="rounded bg-accent px-3 py-1.5 text-sm font-semibold text-white">
+          <Link href={`/admin/lehti/${edition.id}`} className="rounded bg-accent px-3 py-1.5 text-sm font-semibold text-white">
             Muokkaa lehteä
           </Link>
         )}
@@ -32,7 +33,7 @@ export default async function TulevaViikkolehtiPage() {
       <p className="mb-4 text-sm text-muted">
         Esikatselu päivittyy automaattisesti, kun palvelut lisäävät ilmoituksia ja jäsenet julkaisevat artikkeleita lehteen.
       </p>
-      <iframe title="Viikkolehden esikatselu" srcDoc={html} className="h-[80vh] w-full rounded border border-line bg-white" />
+      <iframe title="Lehden esikatselu" srcDoc={html} className="h-[80vh] w-full rounded border border-line bg-white" />
     </div>
   );
 }

@@ -27,6 +27,7 @@ enum EditionStatus {
 enum ZineContentType {
   ALERT
   ARTICLE
+  EVENT
 }
 
 model User {
@@ -42,6 +43,7 @@ model User {
   alerts       Alert[]
   articles     Article[]
   streetRounds StreetRound[]
+  events       CommunityEvent[]
   sessions     Session[]
 }
 
@@ -89,15 +91,39 @@ model Article {
   @@index([authorId])
 }
 
+/// A meeting or event the community itself is putting on ("Käyttäjäyhteisön
+/// kokoukset ja tapahtumat") — added by members, listed publicly, and
+/// printed in the zine right after the page introducing the organisation.
+/// Unlike an Alert (a service announcing something to its users) this is the
+/// community's own calendar, so it is authored by MEMBER/ADMIN accounts.
+model CommunityEvent {
+  id            String    @id @default(cuid())
+  authorId      String
+  title         String
+  startsAt      DateTime
+  /// Optional: set only for events that run across a span worth printing.
+  endsAt        DateTime?
+  location      String?
+  body          String
+  includeInZine Boolean   @default(true)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  author User @relation(fields: [authorId], references: [id])
+
+  @@index([authorId])
+  @@index([startsAt])
+}
+
 model StreetRound {
-  id        String   @id @default(cuid())
-  authorId  String
-  date      DateTime
+  id           String   @id @default(cuid())
+  authorId     String
+  date         DateTime
   participants String?
-  area      String?
-  notes     String
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  area         String?
+  notes        String
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
 
   author User @relation(fields: [authorId], references: [id])
 
@@ -139,17 +165,17 @@ model ZineItem {
 }
 
 model SiteSettings {
-  id            Int    @id @default(1)
-  orgName       String @default("Tampereen Käyttäjäyhteisö")
-  description   String @default("")
+  id              Int    @id @default(1)
+  orgName         String @default("Tampereen Käyttäjäyhteisö")
+  description     String @default("")
   /// Longer Markdown body for the public /tietoa page specifically —
   /// kept separate from `description` (the short blurb also printed on
   /// the zine's back cover), so this can be as long as needed.
-  aboutText     String @default("")
-  contactInfo   String @default("")
-  socialInfo    String @default("")
-  backPageText  String @default("")
-  logoPath      String @default("/branding/logo.jpeg")
+  aboutText       String @default("")
+  contactInfo     String @default("")
+  socialInfo      String @default("")
+  backPageText    String @default("")
+  logoPath        String @default("/branding/logo.jpeg")
   /// Shown on the zine's final page ("write for the next issue"), with a
   /// mailto: QR code.
   submissionEmail String @default("trekayttajayhteiso@proton.me")

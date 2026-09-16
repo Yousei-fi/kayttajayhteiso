@@ -17,6 +17,7 @@ export default async function DashboardLayout({ children }: LayoutProps<"/dashbo
   if (user.role === "MEMBER" || user.role === "ADMIN") {
     links.push(
       { href: "/dashboard/artikkelit", label: "Artikkelit" },
+      { href: "/dashboard/tapahtumat", label: "Tapahtumat" },
       { href: "/dashboard/kierrokset", label: "Katukierrokset" },
     );
   }
@@ -26,7 +27,7 @@ export default async function DashboardLayout({ children }: LayoutProps<"/dashbo
       { href: "/dashboard/kierrokset", label: "Katukierrosten havainnot" },
     );
   }
-  links.push({ href: "/dashboard/viikkolehti", label: "Tuleva viikkolehti" });
+  links.push({ href: "/dashboard/lehti", label: "Tuleva lehti" });
   if (user.role === "ADMIN") {
     links.push({ href: "/admin", label: "Ylläpito" });
   }

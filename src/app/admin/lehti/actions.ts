@@ -12,7 +12,7 @@ export async function toggleItemExcluded(itemId: string): Promise<void> {
   await requireUser("ADMIN");
   const item = await prisma.zineItem.findUniqueOrThrow({ where: { id: itemId } });
   await prisma.zineItem.update({ where: { id: itemId }, data: { excluded: !item.excluded } });
-  revalidatePath(`/admin/viikkolehti/${item.editionId}`);
+  revalidatePath(`/admin/lehti/${item.editionId}`);
 }
 
 export async function moveItem(editionId: string, itemId: string, direction: "up" | "down"): Promise<void> {
@@ -31,7 +31,7 @@ export async function moveItem(editionId: string, itemId: string, direction: "up
     prisma.zineItem.update({ where: { id: a.id }, data: { sortOrder: b.sortOrder } }),
     prisma.zineItem.update({ where: { id: b.id }, data: { sortOrder: a.sortOrder } }),
   ]);
-  revalidatePath(`/admin/viikkolehti/${editionId}`);
+  revalidatePath(`/admin/lehti/${editionId}`);
 }
 
 export async function finalizeEdition(editionId: string): Promise<void> {
@@ -45,9 +45,9 @@ export async function finalizeEdition(editionId: string): Promise<void> {
     data: { status: "FINAL", publishedAt: new Date() },
   });
 
-  revalidatePath(`/admin/viikkolehti/${editionId}`);
-  revalidatePath("/viikkolehti");
-  revalidatePath("/viikkolehti/arkisto");
+  revalidatePath(`/admin/lehti/${editionId}`);
+  revalidatePath("/lehti");
+  revalidatePath("/lehti/arkisto");
 }
 
 export async function generateEditionPdf(editionId: string): Promise<void> {
@@ -70,12 +70,12 @@ export async function generateEditionPdf(editionId: string): Promise<void> {
     assetBaseUrl: process.env.APP_URL ?? "http://localhost:3000",
   });
 
-  const filename = `viikkolehti-${edition.startDate.toISOString().slice(0, 10)}.pdf`;
+  const filename = `kynttila-pimeydessa-${edition.startDate.toISOString().slice(0, 10)}.pdf`;
   const pdfPath = await renderZinePdf(html, filename);
 
   await prisma.zineEdition.update({ where: { id: edition.id }, data: { pdfPath } });
 
-  revalidatePath(`/admin/viikkolehti/${editionId}`);
-  revalidatePath("/viikkolehti");
-  revalidatePath("/viikkolehti/arkisto");
+  revalidatePath(`/admin/lehti/${editionId}`);
+  revalidatePath("/lehti");
+  revalidatePath("/lehti/arkisto");
 }

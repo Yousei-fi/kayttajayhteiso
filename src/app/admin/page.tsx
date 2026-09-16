@@ -8,10 +8,10 @@ export default async function AdminHomePage() {
   return (
     <div className="flex flex-col gap-6">
       <section className="rounded border border-line bg-paper p-4">
-        <p className="text-xs uppercase tracking-wide text-muted">Tuleva viikkolehti</p>
+        <p className="text-xs uppercase tracking-wide text-muted">Tuleva lehti</p>
         <p className="text-xl font-bold">{formatDateRange(edition.startDate, edition.endDate)}</p>
         <Link
-          href={`/admin/viikkolehti/${edition.id}`}
+          href={`/admin/lehti/${edition.id}`}
           className="mt-2 inline-block rounded bg-accent px-3 py-1.5 text-sm font-semibold text-white"
         >
           Avaa ja viimeistele
@@ -22,8 +22,8 @@ export default async function AdminHomePage() {
         <Link href="/admin/kayttajat" className="rounded border border-line bg-paper p-4 font-semibold hover:border-accent-2">
           Käyttäjät
         </Link>
-        <Link href="/admin/viikkolehti" className="rounded border border-line bg-paper p-4 font-semibold hover:border-accent-2">
-          Viikkolehtien arkisto
+        <Link href="/admin/lehti" className="rounded border border-line bg-paper p-4 font-semibold hover:border-accent-2">
+          Lehtien arkisto
         </Link>
         <Link href="/admin/kokemukset" className="rounded border border-line bg-paper p-4 font-semibold hover:border-accent-2">
           Kokemukset (Tampereen palvelut)

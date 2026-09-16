@@ -41,7 +41,9 @@ export async function getZineDirectorySections(weekStart: Date, weekEnd: Date) {
  *
  * Alerts qualify for the edition's week; articles qualify for the month
  * up to it (see articleWindowStart), so the same article can run in
- * several consecutive issues before ageing out.
+ * several consecutive issues before ageing out; community events qualify
+ * while they are still ahead of the edition, however far ahead that is —
+ * a date people need to plan around is worth printing early.
  */
 export async function getSyncedUpcomingEdition(): Promise<ZineEdition> {
   const { startDate, endDate } = upcomingEditionRange();
@@ -60,7 +62,7 @@ export async function getSyncedUpcomingEdition(): Promise<ZineEdition> {
 }
 
 export async function syncEditionItems(editionId: string, weekStart: Date): Promise<void> {
-  const [alerts, articles, existingItems] = await Promise.all([
+  const [alerts, articles, events, existingItems] = await Promise.all([
     prisma.alert.findMany({
       where: {
         archived: false,
@@ -74,6 +76,13 @@ export async function syncEditionItems(editionId: string, weekStart: Date): Prom
         status: "PUBLISHED",
         includeInZine: true,
         createdAt: { gte: articleWindowStart(weekStart) },
+      },
+      include: { author: true },
+    }),
+    prisma.communityEvent.findMany({
+      where: {
+        includeInZine: true,
+        OR: [{ endsAt: { gte: weekStart } }, { endsAt: null, startsAt: { gte: weekStart } }],
       },
       include: { author: true },
     }),
@@ -148,6 +157,42 @@ export async function syncEditionItems(editionId: string, weekStart: Date): Prom
           bodySnapshot: article.body,
           authorSnapshot: article.author.name,
           imageSnapshot: article.imagePath,
+          sortOrder: nextSortOrder++,
+        },
+      });
+    }
+  }
+
+  for (const event of events) {
+    qualifyingKeys.add(`EVENT:${event.id}`);
+    const existing = existingItems.find(
+      (i) => i.contentType === "EVENT" && i.sourceId === event.id,
+    );
+    const meta = JSON.stringify({
+      startsAt: event.startsAt,
+      endsAt: event.endsAt,
+      location: event.location,
+    });
+    if (existing) {
+      await prisma.zineItem.update({
+        where: { id: existing.id },
+        data: {
+          titleSnapshot: event.title,
+          bodySnapshot: event.body,
+          authorSnapshot: event.author.name,
+          metaSnapshot: meta,
+        },
+      });
+    } else {
+      await prisma.zineItem.create({
+        data: {
+          editionId,
+          contentType: "EVENT",
+          sourceId: event.id,
+          titleSnapshot: event.title,
+          bodySnapshot: event.body,
+          authorSnapshot: event.author.name,
+          metaSnapshot: meta,
           sortOrder: nextSortOrder++,
         },
       });

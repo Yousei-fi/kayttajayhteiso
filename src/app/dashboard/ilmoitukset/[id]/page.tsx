@@ -45,7 +45,7 @@ export default async function MuokkaaIlmoitustaPage({
         </label>
         <label className="flex items-center gap-2 text-sm font-medium">
           <input type="checkbox" name="includeInZine" defaultChecked={alert.includeInZine} />
-          Sisällytä tulevaan viikkolehteen
+          Sisällytä tulevaan lehteen
         </label>
 
         <button type="submit" className="rounded bg-accent px-4 py-2 font-semibold text-white">

@@ -13,7 +13,7 @@ export default async function AdminLayout({ children }: LayoutProps<"/admin">) {
         <p className="text-xs uppercase tracking-wide text-accent">Ylläpito</p>
         <nav className="flex flex-wrap gap-3 text-sm">
           <Link href="/admin" className="hover:underline">Etusivu</Link>
-          <Link href="/admin/viikkolehti" className="hover:underline">Viikkolehdet</Link>
+          <Link href="/admin/lehti" className="hover:underline">Lehdet</Link>
           <Link href="/admin/kayttajat" className="hover:underline">Käyttäjät</Link>
           <Link href="/admin/kokemukset" className="hover:underline">Kokemukset</Link>
           <Link href="/admin/asetukset" className="hover:underline">Asetukset</Link>
