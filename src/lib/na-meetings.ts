@@ -47,3 +47,14 @@ export function getUpcomingMeetings(
   withOffset.sort((a, b) => a.minutesUntil - b.minutesUntil);
   return withOffset.slice(0, count).map((w) => w.meeting);
 }
+
+/**
+ * The public introduction to NA, shown both on /na-ryhmat and at the head
+ * of the zine's "Tampereen NA-ryhmät" section. Kept here as a single
+ * source so the printed and the online wording cannot drift apart.
+ */
+export const NA_INTRO_PARAGRAPHS = [
+  "Nimettömät Narkomaanit on pitkäikäinen kansainvälinen yhteisö joka tarjoaa vertaistukea huumeidenkäyttäjille jotka pyrkivät päihteettömään elämään.",
+  "NA (Narcotics Anonymous) ryhmiä on myös paljon Tampereella ja jokainen joka kokee käyttönsä olevan ongelma on tervetullut käymään ryhmissä ja lähteä saa yhtä vapaasti.",
+  "Yleensä ryhmissä toivotaan että ei puhuisi ryhmän ollessa käynnissä jos on päihtyneenä, mutta paikalle saa tulla ja jutella muiden kanssa ennen ryhmää ja sen jälkeen.",
+];

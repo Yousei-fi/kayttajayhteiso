@@ -2,7 +2,7 @@ import Link from "next/link";
 import { prisma } from "@/lib/db";
 import { ServiceMap } from "@/components/service-map";
 import { formatDate } from "@/lib/week";
-import { getUpcomingMeetings, isOnBreak } from "@/lib/na-meetings";
+import { NA_INTRO_PARAGRAPHS, getUpcomingMeetings, isOnBreak } from "@/lib/na-meetings";
 
 const WEEKDAYS = ["Maanantai", "Tiistai", "Keskiviikko", "Torstai", "Perjantai", "Lauantai", "Sunnuntai"];
 
@@ -13,18 +13,10 @@ export default async function NaRyhmatPage({
 }) {
   const { viikonpaiva } = await searchParams;
 
-  const [meetings, latestExperiences] = await Promise.all([
-    prisma.naMeeting.findMany({
-      where: { cancelled: false },
-      orderBy: [{ weekdayIndex: "asc" }, { time: "asc" }],
-    }),
-    prisma.experience.findMany({
-      where: { meetingId: { not: null } },
-      orderBy: { createdAt: "desc" },
-      take: 8,
-      include: { meeting: { select: { id: true, name: true } } },
-    }),
-  ]);
+  const meetings = await prisma.naMeeting.findMany({
+    where: { cancelled: false },
+    orderBy: [{ weekdayIndex: "asc" }, { time: "asc" }],
+  });
 
   const upcoming = getUpcomingMeetings(meetings, 3);
   const filtered = viikonpaiva ? meetings.filter((m) => m.weekday === viikonpaiva) : meetings;
@@ -43,18 +35,11 @@ export default async function NaRyhmatPage({
       <h1 className="mb-4 text-2xl font-bold">Tampereen NA-ryhmät</h1>
 
       <div className="mb-8 rounded-lg border border-line bg-paper p-4 text-sm leading-relaxed">
-        <p className="mb-2">
-          Nimettömät Narkomaanit on pitkäikäinen kansainvälinen yhteisö joka tarjoaa vertaistukea
-          huumeidenkäyttäjille jotka pyrkivät päihteettömään elämään.
-        </p>
-        <p className="mb-2">
-          NA (Narcotics Anonymous) ryhmiä on myös paljon Tampereella ja jokainen joka kokee käyttönsä olevan
-          ongelma on tervetullut käymään ryhmissä ja lähteä saa yhtä vapaasti.
-        </p>
-        <p>
-          Yleensä ryhmissä toivotaan että ei puhuisi ryhmän ollessa käynnissä jos on päihtyneenä, mutta
-          paikalle saa tulla ja jutella muiden kanssa ennen ryhmää ja sen jälkeen.
-        </p>
+        {NA_INTRO_PARAGRAPHS.map((para) => (
+          <p key={para} className="mb-2 last:mb-0">
+            {para}
+          </p>
+        ))}
       </div>
 
       <section className="mb-8">
@@ -101,48 +86,26 @@ export default async function NaRyhmatPage({
         ))}
       </div>
 
-      <div className="grid gap-8 md:grid-cols-[2fr_1fr]">
-        <ul className="flex flex-col gap-2">
-          {filtered.map((m) => (
-            <li key={m.id} className="rounded border border-line bg-paper p-3">
-              <Link href={`/na-ryhmat/${m.id}`} className="font-semibold hover:underline">
-                {m.name}
-              </Link>
-              <p className="text-xs uppercase tracking-wide text-accent-2">
-                {m.weekday} klo {m.time}
-                {m.durationMinutes ? ` · ${m.durationMinutes} min` : ""}
+      <ul className="flex flex-col gap-2">
+        {filtered.map((m) => (
+          <li key={m.id} className="rounded border border-line bg-paper p-3">
+            <Link href={`/na-ryhmat/${m.id}`} className="font-semibold hover:underline">
+              {m.name}
+            </Link>
+            <p className="text-xs uppercase tracking-wide text-accent-2">
+              {m.weekday} klo {m.time}
+              {m.durationMinutes ? ` · ${m.durationMinutes} min` : ""}
+            </p>
+            {m.address && <p className="text-xs text-muted">{m.address}</p>}
+            {isOnBreak(m) && (
+              <p className="mt-1 text-xs font-semibold text-danger">
+                Tauolla {formatDate(m.onBreakUntil!)} asti
               </p>
-              {m.address && <p className="text-xs text-muted">{m.address}</p>}
-              {isOnBreak(m) && (
-                <p className="mt-1 text-xs font-semibold text-danger">
-                  Tauolla {formatDate(m.onBreakUntil!)} asti
-                </p>
-              )}
-            </li>
-          ))}
-          {filtered.length === 0 && <p className="text-sm text-muted">Ei kokouksia tällä viikonpäivällä.</p>}
-        </ul>
-
-        <div>
-          <h2 className="mb-3 text-sm font-bold uppercase tracking-wide text-muted">Uusimmat kokemukset</h2>
-          <ul className="flex flex-col gap-3">
-            {latestExperiences.map((e) => (
-              <li key={e.id} className="rounded border border-line bg-paper p-3 text-sm">
-                <p>{e.body}</p>
-                <p className="mt-1 text-xs text-muted">
-                  {e.meeting && (
-                    <Link href={`/na-ryhmat/${e.meeting.id}`} className="text-accent-2 hover:underline">
-                      {e.meeting.name}
-                    </Link>
-                  )}{" "}
-                  · {formatDate(e.createdAt)}
-                </p>
-              </li>
-            ))}
-            {latestExperiences.length === 0 && <p className="text-sm text-muted">Ei vielä kokemuksia.</p>}
-          </ul>
-        </div>
-      </div>
+            )}
+          </li>
+        ))}
+        {filtered.length === 0 && <p className="text-sm text-muted">Ei kokouksia tällä viikonpäivällä.</p>}
+      </ul>
     </main>
   );
 }

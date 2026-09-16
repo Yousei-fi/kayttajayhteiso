@@ -1,16 +1,18 @@
 import { prisma } from "@/lib/db";
-import { upcomingEditionRange } from "@/lib/week";
+import { articleWindowStart, upcomingEditionRange } from "@/lib/week";
 import type { ZineEdition } from "@prisma/client";
 
 /**
- * The directory (services, NA meetings) and their Kokemukset posted
- * during a given edition's week, for the zine's "Palvelut"/"NA-ryhmät"
- * sections. Unlike alerts/articles these aren't snapshotted into
- * ZineItem — the directories themselves barely change, and Experience
- * rows are already immutable historical records once a week has passed,
- * so a live query naturally gives the same stable result for any past
- * week (aside from an admin later deleting an abusive post, which should
- * disappear everywhere).
+ * The directory (services, NA meetings) for the zine's "Palvelut"/
+ * "NA-ryhmät" sections, with services carrying the Kokemukset posted
+ * during a given edition's week. Unlike alerts/articles these aren't
+ * snapshotted into ZineItem — the directories themselves barely change,
+ * and Experience rows are already immutable historical records once a
+ * week has passed, so a live query naturally gives the same stable
+ * result for any past week (aside from an admin later deleting an
+ * abusive post, which should disappear everywhere). NA meetings carry no
+ * Kokemukset: posting them was removed, so the section is the meeting
+ * list alone.
  */
 export async function getZineDirectorySections(weekStart: Date, weekEnd: Date) {
   const weekEndExclusive = new Date(weekEnd.getTime() + 24 * 60 * 60 * 1000);
@@ -24,7 +26,6 @@ export async function getZineDirectorySections(weekStart: Date, weekEnd: Date) {
     prisma.naMeeting.findMany({
       where: { cancelled: false },
       orderBy: [{ weekdayIndex: "asc" }, { time: "asc" }],
-      include: { experiences: { where: { createdAt: experienceWindow }, orderBy: { createdAt: "desc" } } },
     }),
   ]);
 
@@ -37,6 +38,10 @@ export async function getZineDirectorySections(weekStart: Date, weekEnd: Date) {
  * articles: new qualifying content is appended, content that no longer
  * qualifies is dropped, and content still qualifying has its snapshot
  * refreshed. Manual admin ordering and exclusions are preserved.
+ *
+ * Alerts qualify for the edition's week; articles qualify for the month
+ * up to it (see articleWindowStart), so the same article can run in
+ * several consecutive issues before ageing out.
  */
 export async function getSyncedUpcomingEdition(): Promise<ZineEdition> {
   const { startDate, endDate } = upcomingEditionRange();
@@ -65,7 +70,11 @@ export async function syncEditionItems(editionId: string, weekStart: Date): Prom
       include: { service: true },
     }),
     prisma.article.findMany({
-      where: { status: "PUBLISHED", includeInZine: true },
+      where: {
+        status: "PUBLISHED",
+        includeInZine: true,
+        createdAt: { gte: articleWindowStart(weekStart) },
+      },
       include: { author: true },
     }),
     prisma.zineItem.findMany({ where: { editionId } }),

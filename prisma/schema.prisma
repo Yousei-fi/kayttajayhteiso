@@ -208,11 +208,16 @@ model NaMeeting {
   @@index([weekdayIndex])
 }
 
-/// An anonymous short public note ("Kokemus") about either a
-/// DirectoryService or an NaMeeting — exactly one of serviceId/meetingId
-/// is set. No account, no author field by design; ipAddress is recorded
+/// An anonymous short public note ("Kokemus") about a DirectoryService.
+/// No account, no author field by design; ipAddress is recorded
 /// (disclosed to posters) purely so admins can moderate abuse via
 /// BannedIp, and is never shown to other visitors.
+///
+/// meetingId is retained only for rows written while NA meetings also
+/// accepted Kokemukset: that was removed (a meeting is not a service to
+/// be reviewed), so nothing writes meetingId any more and no public page
+/// reads it — admins can still find and delete those rows in
+/// /admin/kokemukset.
 model Experience {
   id        String   @id @default(cuid())
   serviceId String?

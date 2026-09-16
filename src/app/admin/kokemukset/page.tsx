@@ -26,8 +26,9 @@ export default async function AdminKokemuksetPage() {
       <div>
         <h1 className="mb-1 text-xl font-bold">Kokemukset</h1>
         <p className="mb-4 text-sm text-muted">
-          Anonyymit julkiset kokemukset palveluista ja NA-ryhmistä. Poista asiattomat tai tunnistetietoja
-          sisältävät viestit, ja estä tarvittaessa lähettäjän IP-osoite.
+          Anonyymit julkiset kokemukset Tampereen palveluista. Poista asiattomat tai tunnistetietoja
+          sisältävät viestit, ja estä tarvittaessa lähettäjän IP-osoite. Listalla voi vielä näkyä vanhoja
+          NA-ryhmiin liitettyjä kokemuksia — niitä ei enää voi jättää, mutta ne voi poistaa täältä.
         </p>
         <ul className="flex flex-col gap-2">
           {experiences.map((e) => {

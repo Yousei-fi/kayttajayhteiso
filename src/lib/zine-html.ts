@@ -1,6 +1,7 @@
 import { renderMarkdown } from "@/lib/markdown";
 import { formatDate, formatDateRange } from "@/lib/week";
 import { qrCodeSvg } from "@/lib/qrcode";
+import { NA_INTRO_PARAGRAPHS } from "@/lib/na-meetings";
 import type {
   DirectoryService,
   Experience,
@@ -12,13 +13,62 @@ import type {
 
 type EditionWithItems = ZineEdition & { items: ZineItem[] };
 type ServiceWithExperiences = DirectoryService & { experiences: Experience[] };
-type MeetingWithExperiences = NaMeeting & { experiences: Experience[] };
+
 
 function esc(s: string): string {
   return s
     .replace(/&/g, "&amp;")
     .replace(/</g, "&lt;")
     .replace(/>/g, "&gt;");
+}
+
+const MAX_DESCRIPTION_CHARS = 110;
+
+/**
+ * The dialable part of a directory entry's phone field. Some entries append
+ * opening hours to the number ("0400 734 793, maanantaista torstaihin klo
+ * 10–12"); the phonebook listing prints only the number, keeping its column
+ * narrow, and the hours survive in the entry's description.
+ */
+function phoneNumber(phone: string | null): string {
+  const phoneText = (phone ?? "").trim();
+  const leadingNumber = phoneText.match(/^\+?[\d][\d\s()\-–]*/);
+  return leadingNumber ? leadingNumber[0].replace(/[\s\-–]+$/, "") : phoneText;
+}
+
+/**
+ * Condenses a directory entry's description into the one printable line the
+ * zine's phonebook listing allows. Most entries repeat their own phone
+ * number in the description ("Puhelin: 116 117 Kiireelliset…"), which the
+ * listing already prints in its own column, so the number and its label are
+ * dropped — along with the punctuation left behind — before the text is
+ * clipped at a word boundary.
+ */
+function shortDescription(description: string | null, phone: string | null): string {
+  let text = (description ?? "").replace(/\s+/g, " ").trim();
+  if (!text) return "";
+
+  const digits = phoneNumber(phone).replace(/\D/g, "");
+  if (digits.length >= 5) {
+    const spacedDigits = digits.split("").join("[\\s()\\-–]*");
+    text = text.replace(
+      new RegExp(`(?:puhelin|puh\\.?|ajanvaraus|soita|numero)?\\s*:?\\s*\\+?${spacedDigits}`, "gi"),
+      " ",
+    );
+    text = text
+      .replace(/\s+/g, " ")
+      .replace(/\s+([.,;:])/g, "$1")
+      .replace(/([.,;:])\s*\1+/g, "$1")
+      .replace(/^[\s.,;:–—-]+/, "")
+      .trim();
+    text = text.charAt(0).toUpperCase() + text.slice(1);
+  }
+  if (!text) return "";
+  if (text.length <= MAX_DESCRIPTION_CHARS) return text;
+
+  const clipped = text.slice(0, MAX_DESCRIPTION_CHARS);
+  const lastSpace = clipped.lastIndexOf(" ");
+  return `${(lastSpace > 40 ? clipped.slice(0, lastSpace) : clipped).replace(/[.,;:]$/, "")}…`;
 }
 
 function alertMeta(item: ZineItem): string {
@@ -45,16 +95,18 @@ function alertMeta(item: ZineItem): string {
  *
  * Page order: cover (logo + "Tietoa meistä" text) -> index -> Tiedotteet
  * -> Artikkelit -> Tampereen palvelut (+ that week's Kokemukset) ->
- * Tampereen NA-ryhmät (+ that week's Kokemukset) -> a closing "write for
- * us" page. Services/meetings are always listed in full (they're a small
- * reference directory, not curated per-edition); only their Kokemukset
- * are scoped to the edition's week.
+ * Tampereen NA-ryhmät -> a closing "write for us" page.
+ * Services/meetings are always listed in full (they're a reference
+ * directory, not curated per-edition); only the services' Kokemukset are
+ * scoped to the edition's week. The service directory is set as a
+ * two-column phonebook (name / short description / phone) because it is
+ * long already and grows as entries get filled in.
  */
 export async function buildZineHtml(params: {
   edition: EditionWithItems;
   settings: SiteSettings;
   services: ServiceWithExperiences[];
-  meetings: MeetingWithExperiences[];
+  meetings: NaMeeting[];
   mode: "preview" | "print";
   /** Origin to prefix root-relative asset paths with (needed for PDF rendering, where there is no page origin to resolve them against). */
   assetBaseUrl?: string;
@@ -155,19 +207,28 @@ export async function buildZineHtml(params: {
   const servicesHtml = `
   <section class="directory">
     <h2 class="section-title">Tampereen palvelut</h2>
-    <div class="dir-list">
+    <p class="section-lead">
+      Hakemisto Tampereen päihde- ja mielenterveyspalveluista, järjestöistä ja vertaistuesta.
+      Tämä ei ole kattava lista — täydennämme sitä sitä mukaa kun tietoa kertyy.
+    </p>
+    <div class="tel-book">
       ${groupByCategory(services)
         .map(
           ([category, group]) => `
-        <h4 class="dir-category">${esc(category)}</h4>
+        <h4 class="tel-category">${esc(category)}</h4>
         ${group
-          .map(
-            (s) => `
-          <div class="dir-row">
-            <strong>${esc(s.name)}</strong>
-            ${[s.address, s.phone].filter(Boolean).map((v) => esc(v as string)).join(" · ")}
-          </div>`,
-          )
+          .map((s) => {
+            const desc = shortDescription(s.description, s.phone);
+            return `
+          <div class="tel-entry">
+            <div class="tel-head">
+              <span class="tel-name">${esc(s.name)}</span>
+              ${s.phone ? `<span class="tel-number">${esc(phoneNumber(s.phone))}</span>` : ""}
+            </div>
+            ${desc ? `<div class="tel-desc">${esc(desc)}</div>` : ""}
+            ${s.address ? `<div class="tel-addr">${esc(s.address)}</div>` : ""}
+          </div>`;
+          })
           .join("")}`,
         )
         .join("")}
@@ -194,10 +255,12 @@ export async function buildZineHtml(params: {
     ${kokemuksetCta("Haluatko selata kaikkia kokemuksia tai jakaa omasi? Suuntaa sivustolle:")}
   </section>`;
 
-  const meetingsWithNews = meetings.filter((m) => m.experiences.length > 0);
   const meetingsHtml = `
   <section class="directory">
     <h2 class="section-title">Tampereen NA-ryhmät</h2>
+    <div class="na-intro">
+      ${NA_INTRO_PARAGRAPHS.map((para) => `<p>${esc(para)}</p>`).join("")}
+    </div>
     <div class="dir-list">
       ${groupByWeekday(meetings)
         .map(
@@ -215,26 +278,6 @@ export async function buildZineHtml(params: {
         )
         .join("")}
     </div>
-
-    <h3 class="subsection-title">Uudet kokemukset tällä viikolla</h3>
-    ${
-      meetingsWithNews.length === 0
-        ? `<p class="muted">Ei uusia kokemuksia tällä viikolla.</p>`
-        : `<div class="kokemus-grid">
-            ${meetingsWithNews
-              .map(
-                (m) => `
-              <div class="kokemus-group">
-                <div class="kokemus-target">${esc(m.name)} (${esc(m.weekday)})</div>
-                ${m.experiences
-                  .map((e) => `<p class="kokemus-body">${esc(e.body)}</p>`)
-                  .join("")}
-              </div>`,
-              )
-              .join("")}
-          </div>`
-    }
-    ${kokemuksetCta("Haluatko selata kaikkia kokemuksia tai jakaa omasi? Suuntaa sivustolle:")}
   </section>`;
 
   const finalHtml =
@@ -245,6 +288,7 @@ export async function buildZineHtml(params: {
     ${submissionQr ? `<div class="cta-qr large">${submissionQr}</div>` : ""}
     <p class="final-question">Haluatko kirjoituksesi seuraavaan lehteen?</p>
     <p>Ota yhteyttä sähköpostitse: <strong>${esc(settings.submissionEmail)}</strong></p>
+    <p class="final-alt">Tai pyydä lehden jakajaa kirjaamaan ylös kuulumisesi!</p>
   </section>`;
 
   return `<!doctype html>
@@ -277,8 +321,8 @@ function groupByCategory(services: ServiceWithExperiences[]): [string, ServiceWi
   return [...map.entries()];
 }
 
-function groupByWeekday(meetings: MeetingWithExperiences[]): [string, MeetingWithExperiences[]][] {
-  const map = new Map<string, MeetingWithExperiences[]>();
+function groupByWeekday(meetings: NaMeeting[]): [string, NaMeeting[]][] {
+  const map = new Map<string, NaMeeting[]>();
   for (const m of meetings) {
     if (!map.has(m.weekday)) map.set(m.weekday, []);
     map.get(m.weekday)!.push(m);
@@ -342,6 +386,19 @@ function zineCss(mode: "preview" | "print"): string {
       margin-bottom: 6mm;
     }
     .subsection-title { font-size: 15px; margin-top: 8mm; margin-bottom: 3mm; }
+    .section-lead { font-size: 11.5px; line-height: 1.5; color: var(--muted); margin: 0 0 5mm; max-width: 150mm; }
+
+    .na-intro {
+      font-size: 12px;
+      line-height: 1.55;
+      margin-bottom: 7mm;
+      padding-left: 4mm;
+      border-left: 3px solid var(--accent);
+      max-width: 150mm;
+      break-inside: avoid;
+    }
+    .na-intro p { margin: 0 0 0.7em; }
+    .na-intro p:last-child { margin-bottom: 0; }
 
     .alerts { page-break-before: always; break-before: page; margin-bottom: 10mm; }
     .alert-grid { display: flex; flex-direction: column; gap: 5mm; }
@@ -381,22 +438,66 @@ function zineCss(mode: "preview" | "print"): string {
     .dir-row { break-inside: avoid; padding: 0.6mm 0; }
     .dir-row strong { margin-right: 4px; }
 
+    /* Phonebook listing for Tampereen palvelut: two columns of
+       name / short description / phone entries, kept dense because the
+       directory is long and still growing. */
+    .tel-book { column-count: 2; column-gap: 7mm; column-rule: 1px solid var(--line); }
+    .tel-category {
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: #fff;
+      background: var(--accent-2);
+      padding: 1mm 2mm;
+      margin: 4mm 0 1.5mm;
+      break-after: avoid;
+      page-break-after: avoid;
+    }
+    .tel-category:first-child { margin-top: 0; }
+    .tel-entry {
+      break-inside: avoid;
+      page-break-inside: avoid;
+      padding: 1.1mm 0;
+      border-bottom: 1px dotted var(--line);
+    }
+    .tel-head { display: flex; align-items: baseline; justify-content: space-between; gap: 3mm; }
+    .tel-name { min-width: 0; }
+    .tel-name {
+      font-family: "Helvetica Neue", Arial, sans-serif;
+      font-size: 10px;
+      font-weight: 700;
+      line-height: 1.3;
+    }
+    .tel-number {
+      font-family: "Helvetica Neue", Arial, sans-serif;
+      font-size: 10px;
+      font-weight: 700;
+      color: var(--accent);
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+    .tel-desc { font-size: 9.5px; line-height: 1.35; margin-top: 0.3mm; }
+    .tel-addr { font-size: 9px; line-height: 1.3; color: var(--muted); margin-top: 0.2mm; }
+
     .kokemus-grid { display: flex; flex-direction: column; gap: 3mm; }
     .kokemus-group { break-inside: avoid; border-left: 3px solid var(--accent-2); padding: 1mm 0 1mm 4mm; }
     .kokemus-target { font-size: 11px; font-weight: 700; color: var(--accent-2); font-family: "Helvetica Neue", Arial, sans-serif; }
     .kokemus-body { font-size: 12px; margin: 1mm 0; line-height: 1.4; }
 
+    /* Kept deliberately small: it trails a section that ends wherever the
+       content happens to end, and as an unbreakable block a taller one
+       spills onto a page of its own — a blank sheet in a printed zine. */
     .kokemukset-cta {
-      margin-top: 8mm;
+      margin-top: 5mm;
       display: flex;
       align-items: center;
-      gap: 4mm;
+      gap: 3mm;
       border-top: 1px solid var(--line);
-      padding-top: 5mm;
+      padding-top: 3mm;
       break-inside: avoid;
     }
     .kokemukset-cta p { font-size: 11px; margin: 0; }
-    .cta-qr { width: 20mm; height: 20mm; flex-shrink: 0; }
+    .cta-qr { width: 16mm; height: 16mm; flex-shrink: 0; }
     .cta-qr svg { width: 100%; height: 100%; }
     .cta-qr.large { width: 35mm; height: 35mm; margin: 0 auto 6mm; }
 
@@ -408,5 +509,6 @@ function zineCss(mode: "preview" | "print"): string {
     }
     .final-question { font-size: 20px; font-weight: 700; max-width: 130mm; margin: 0 auto 4mm; }
     .final-page p { font-size: 14px; }
+    .final-alt { max-width: 120mm; margin: 4mm auto 0; font-weight: 700; color: var(--accent); }
   `;
 }

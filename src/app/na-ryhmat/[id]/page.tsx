@@ -2,8 +2,6 @@ import { prisma } from "@/lib/db";
 import { formatDate } from "@/lib/week";
 import { isOnBreak } from "@/lib/na-meetings";
 import { notFound } from "next/navigation";
-import { addMeetingExperience } from "./actions";
-import { ExperienceForm } from "@/components/experience-form";
 
 export default async function NaRyhmaPage({
   params,
@@ -12,13 +10,9 @@ export default async function NaRyhmaPage({
 }) {
   const { id } = await params;
 
-  const meeting = await prisma.naMeeting.findUnique({
-    where: { id },
-    include: { experiences: { orderBy: { createdAt: "desc" } } },
-  });
+  const meeting = await prisma.naMeeting.findUnique({ where: { id } });
   if (!meeting) notFound();
 
-  const boundAdd = addMeetingExperience.bind(null, meeting.id);
   const onBreak = isOnBreak(meeting);
 
   return (
@@ -59,26 +53,6 @@ export default async function NaRyhmaPage({
           </a>
         </p>
       )}
-
-      <section className="mt-10">
-        <h2 className="mb-2 text-lg font-bold">Jätä kokemus</h2>
-        <ExperienceForm action={boundAdd} />
-      </section>
-
-      <section className="mt-10">
-        <h2 className="mb-3 text-lg font-bold">Kokemukset ({meeting.experiences.length})</h2>
-        <ul className="flex flex-col gap-3">
-          {meeting.experiences.map((e) => (
-            <li key={e.id} className="rounded border border-line bg-paper p-3 text-sm">
-              <p>{e.body}</p>
-              <p className="mt-1 text-xs text-muted">{formatDate(e.createdAt)}</p>
-            </li>
-          ))}
-          {meeting.experiences.length === 0 && (
-            <p className="text-sm text-muted">Ei vielä kokemuksia tästä ryhmästä.</p>
-          )}
-        </ul>
-      </section>
     </main>
   );
 }

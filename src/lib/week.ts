@@ -30,6 +30,20 @@ export function upcomingEditionRange(reference: Date = new Date()): {
   return { startDate, endDate };
 }
 
+/**
+ * The start of the window an edition draws its articles from: one calendar
+ * month back from the edition's own start. Alerts are week-scoped because
+ * they are time-critical, but articles are written at a much slower pace,
+ * so a week's worth of them would leave most issues with nothing to read —
+ * a month-long window keeps every issue stocked, and an article simply
+ * ages out of the zine a month after it was written.
+ */
+export function articleWindowStart(editionStart: Date): Date {
+  const start = atMidnight(editionStart);
+  start.setMonth(start.getMonth() - 1);
+  return start;
+}
+
 const FI_DATE = new Intl.DateTimeFormat("fi-FI", {
   day: "numeric",
   month: "numeric",

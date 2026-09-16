@@ -88,7 +88,7 @@ export default async function HomePage() {
           <h2 className="text-xl font-bold">Tampereen NA-ryhmät</h2>
           <p className="mt-2 text-sm text-muted">
             Nimettömien Narkomaanien vertaistukiryhmät Tampereella kartalla, seuraavat kokoukset ja
-            kokemuksia ryhmistä.
+            ryhmien tiedot.
           </p>
           <Link href="/na-ryhmat" className="mt-3 inline-block text-sm text-accent-2 underline">
             Avaa Tampereen NA-ryhmät
