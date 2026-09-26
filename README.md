@@ -1,5 +1,10 @@
 # kuntoutus.info2 — Tampereen Käyttäjäyhteisö
 
+Live at **https://tampere.kayttajayhteiso.fi**; the community's address is
+**tampere@kayttajayhteiso.fi**. (The repository keeps its original
+`kuntoutus.info2` name — the site moved off `kuntoutus.info`, the repo didn't
+get renamed with it.)
+
 A small publishing and information-sharing tool for Tampereen Käyttäjäyhteisö, not a service directory or case-management system. It exists to move three kinds of content into a printable weekly zine with as little manual work as possible:
 
 - **Service alerts** — short, occasional notices from local drug-related services ("closed Tuesday", "naloxone training Wednesday").
@@ -123,6 +128,8 @@ The same admin settings page (`/admin/asetukset`) also holds:
 
 `prisma/seed-reference.ts` runs on every boot (see below) and includes a narrow, one-time correction: if the single `SiteSettings` row still holds one of the exact placeholder values this project shipped with early on (the old `logo-placeholder.svg` path, or the placeholder email/Telegram handle), it's replaced with the real value. This exists because that row is created once and then only ever read with `update: {}` elsewhere — so an environment deployed before real content existed would otherwise keep showing stale placeholders forever, even after the code and defaults were fixed. The check is exact-value-only, so once a field holds anything else — including an admin's own edit — it's never touched again.
 
+The same mechanism carries the 2026 move onto the community's own domain. `contactInfo`, `submissionEmail` and `publicSiteUrl` are repointed to `tampere@kayttajayhteiso.fi` and `https://tampere.kayttajayhteiso.fi` wherever they still hold a retired value — the Proton and Gmail addresses, the `info@kayttajayhteiso.fi` placeholder, or `https://kuntoutus.info`. The `20260926090000_kayttajayhteiso_domain` migration does this once against an existing database and repoints the column defaults for fresh installs; the boot-time check is the same correction, so an install seeded from an older build converges as well. An address an admin has since typed at `/admin/asetukset` is never overwritten.
+
 ## Käyttäjäyhteisön kokoukset ja tapahtumat
 
 The community's own calendar, as opposed to a service announcing something to its users (that's `Alert`). `MEMBER` and `ADMIN` accounts add entries at `/dashboard/tapahtumat` (title, start, optional end, optional location, description, and an "include in the paper" flag); a member can edit or delete their own, an admin anyone's. Entries are public at `/tapahtumat` and on the front page, and print in the paper immediately after the page introducing the organisation.
@@ -169,8 +176,8 @@ public/branding/          logo + replacement instructions
 ### On Coolify
 
 1. New Resource → Docker Compose, pointed at this repo's `main` branch (it will use `docker-compose.yml` at the root).
-2. In the Coolify UI, assign your domain to the **`app`** service — Coolify detects the `expose: 3000` port automatically. Leave "Port Mappings" empty; don't add one.
-3. Set the environment variable `APP_URL` to that same `https://your-domain` (required — the container won't start without it). Optionally set `SEED_DEMO_DATA=true` for the *first* deploy only, then remove it.
+2. In the Coolify UI, assign the site's domain — `tampere.kayttajayhteiso.fi` — to the **`app`** service. Coolify detects the `expose: 3000` port automatically. Leave "Port Mappings" empty; don't add one.
+3. Set the environment variable `APP_URL` to that same domain, `https://tampere.kayttajayhteiso.fi` (required — the container won't start without it). Optionally set `SEED_DEMO_DATA=true` for the *first* deploy only, then remove it.
 4. Deploy. On boot the container runs `prisma migrate deploy` automatically, then starts the app once Coolify's healthcheck (`curl` against `/`) passes.
 
 ### Plain `docker compose` (no Coolify / no reverse proxy in front)

@@ -178,10 +178,10 @@ model SiteSettings {
   logoPath        String @default("/branding/logo.jpeg")
   /// Shown on the zine's final page ("write for the next issue"), with a
   /// mailto: QR code.
-  submissionEmail String @default("trekayttajayhteiso@proton.me")
+  submissionEmail String @default("tampere@kayttajayhteiso.fi")
   /// The public site's own URL, shown (with a QR code) in the zine's
   /// Kokemukset sections as "browse or add your own experience here".
-  publicSiteUrl   String @default("https://kuntoutus.info")
+  publicSiteUrl   String @default("https://tampere.kayttajayhteiso.fi")
 }
 
 /// A directory entry for the public "Tampereen palvelut" service map,

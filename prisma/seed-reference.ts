@@ -21,8 +21,9 @@ Tiedostamme että päihdepoliittinen tilanne Suomessa kaipaa parannusta ja vaadi
 
 Yhteisöömme ovat tervetulleet niin huumeidenkäyttäjät, kuin niitä ennen käyttäneet tai kuka tahansa yhteisöstämme kiinnostunut taho.`;
 
-const REAL_EMAIL = "trekayttajayhteiso@gmail.com";
+const REAL_EMAIL = "tampere@kayttajayhteiso.fi";
 const REAL_TELEGRAM = "http://dy.fi/7zs";
+const REAL_SITE_URL = "https://tampere.kayttajayhteiso.fi";
 // Seeded onto every install until it was dropped from the paper and the
 // site. Cleared below wherever it is still exactly this text, so existing
 // databases lose it too; a back-page text an admin has since written
@@ -36,9 +37,21 @@ const RETIRED_BACKPAGE_TEXT =
 // silently overwritten on a later boot.
 const STALE_DEFAULTS = {
   logoPath: "/branding/logo-placeholder.svg",
-  contactInfo: "info@kayttajayhteiso.fi",
   socialInfo: "@tampereenkayttajayhteiso",
 };
+
+// Addresses this project has used before moving to its own domain: the
+// original placeholder, the Gmail account and the Proton address. The
+// 20260926090000_kayttajayhteiso_domain migration rewrites these once; these
+// lists are the same correction applied on every boot, so an install that
+// was seeded from an older build converges too.
+const RETIRED_CONTACT_EMAILS = [
+  "info@kayttajayhteiso.fi",
+  "trekayttajayhteiso@gmail.com",
+  "trekayttajayhteiso@proton.me",
+];
+const RETIRED_SUBMISSION_EMAILS = ["trekayttajayhteiso@proton.me"];
+const RETIRED_SITE_URLS = ["https://kuntoutus.info"];
 
 async function syncSiteSettings(): Promise<void> {
   const existing = await prisma.siteSettings.findUnique({ where: { id: 1 } });
@@ -50,6 +63,8 @@ async function syncSiteSettings(): Promise<void> {
         aboutText: REAL_ABOUT_TEXT,
         contactInfo: REAL_EMAIL,
         socialInfo: REAL_TELEGRAM,
+        submissionEmail: REAL_EMAIL,
+        publicSiteUrl: REAL_SITE_URL,
       },
     });
     console.log("SiteSettings: luotu oletusarvoilla.");
@@ -59,8 +74,12 @@ async function syncSiteSettings(): Promise<void> {
   const fixes: Record<string, string> = {};
   if (existing.logoPath === STALE_DEFAULTS.logoPath) fixes.logoPath = "/branding/logo.jpeg";
   if (!existing.aboutText) fixes.aboutText = REAL_ABOUT_TEXT;
-  if (!existing.contactInfo || existing.contactInfo === STALE_DEFAULTS.contactInfo) fixes.contactInfo = REAL_EMAIL;
+  if (!existing.contactInfo || RETIRED_CONTACT_EMAILS.includes(existing.contactInfo)) fixes.contactInfo = REAL_EMAIL;
   if (!existing.socialInfo || existing.socialInfo === STALE_DEFAULTS.socialInfo) fixes.socialInfo = REAL_TELEGRAM;
+  if (!existing.submissionEmail || RETIRED_SUBMISSION_EMAILS.includes(existing.submissionEmail))
+    fixes.submissionEmail = REAL_EMAIL;
+  if (!existing.publicSiteUrl || RETIRED_SITE_URLS.includes(existing.publicSiteUrl))
+    fixes.publicSiteUrl = REAL_SITE_URL;
   if (existing.backPageText === RETIRED_BACKPAGE_TEXT) fixes.backPageText = "";
 
   if (Object.keys(fixes).length > 0) {
