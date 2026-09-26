@@ -176,9 +176,23 @@ public/branding/          logo + replacement instructions
 ### On Coolify
 
 1. New Resource → Docker Compose, pointed at this repo's `main` branch (it will use `docker-compose.yml` at the root).
-2. In the Coolify UI, assign the site's domain — `tampere.kayttajayhteiso.fi` — to the **`app`** service. Coolify detects the `expose: 3000` port automatically. Leave "Port Mappings" empty; don't add one.
+2. In the Coolify UI, assign the site's domain — `tampere.kayttajayhteiso.fi` — to the **`app`** service. Coolify detects the `expose: 3000` port automatically. Leave "Port Mappings" empty; don't add one. If `kuntoutus.info` is still held, attach it to the same service as a second domain (see *The old domain* below).
 3. Set the environment variable `APP_URL` to that same domain, `https://tampere.kayttajayhteiso.fi` (required — the container won't start without it). Optionally set `SEED_DEMO_DATA=true` for the *first* deploy only, then remove it.
 4. Deploy. On boot the container runs `prisma migrate deploy` automatically, then starts the app once Coolify's healthcheck (`curl` against `/`) passes.
+
+### The old domain
+
+`next.config.ts` permanently redirects (308) any request arriving with a
+`kuntoutus.info` or `www.kuntoutus.info` Host header to the same path on
+`tampere.kayttajayhteiso.fi`. This matters beyond tidiness: back issues of the
+paper were printed with QR codes pointing at the old address, and printed paper
+cannot be reissued — those codes keep working only for as long as the old domain
+resolves here.
+
+The redirect is conditioned on the Host header, so it never affects the new
+domain or local development, and costs nothing if the old domain is dropped. It
+only takes effect if the old domain is actually routed to this app, which on
+Coolify means attaching it to the `app` service alongside the primary domain.
 
 ### Plain `docker compose` (no Coolify / no reverse proxy in front)
 
