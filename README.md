@@ -73,6 +73,46 @@ node scripts/create-admin.mjs --name "Ylläpitäjä" --email admin@example.com -
 
 Running it with an email that already exists promotes that account to `ADMIN`, reactivates it, and resets its password to the one given — this doubles as an account-recovery tool. Against Docker/Coolify, run it via `docker exec -it <container> node scripts/create-admin.mjs` (interactive) or with `docker exec <container> node scripts/create-admin.mjs --name ... --email ... --password ...` (non-interactive).
 
+### Service accounts for the whole directory
+
+Handing out logins one at a time through `/admin/kayttajat` does not scale to
+the ~130 organisations in the service directory, so there is a script that
+creates them all and produces something to hand over on paper:
+
+```bash
+npm run service-accounts -- --dry-run     # what it would create; writes nothing
+npm run service-accounts                  # create the missing accounts, print those
+npm run service-accounts -- --reset-all   # new password for every service account
+```
+
+It reads the directory from the database (not the JSON source), so it covers
+whatever `/palvelut` currently lists. One login per *organisation*: a few appear
+under two categories and get a single account, not two. The login identifier is
+built from the organisation's name, e.g.
+`tampereen-a-kilta-harmalatupa@palvelut.kayttajayhteiso.fi` — a name, not a
+mailbox. Nothing is ever sent to it; the app has no outbound mail at all.
+
+The output is `palvelutunnukset.pdf`: A4, eight cut-out slips per page, each
+with the organisation's name, the login address, its identifier, its password
+and a QR code to `/kirjaudu`. Slips are ordered by directory category and carry
+that category in the corner, so the printed stack can be sorted by hand.
+
+Two things worth knowing before running it:
+
+- **A password is only visible in the run that creates it.** The database keeps
+  a bcrypt hash and nothing else, so the PDF covers exactly the accounts that
+  run issued a password for. Existing accounts are skipped. `--reset-all`
+  reprints everything at the cost of invalidating every slip already handed out.
+- **The PDF holds live passwords in plain text.** It is written to the working
+  directory (mode `600`) and is gitignored. It deliberately does *not* go under
+  `storage/`, because everything there is served unauthenticated at
+  `/uploads/<path>` — a credentials file placed there would be public. Print it,
+  cut it, delete it.
+
+There is no self-service password change: a service that loses its slip needs an
+admin to set a new password at `/admin/kayttajat`, which is what the note on
+each slip tells them.
+
 - **Member** — writes articles, logs street rounds, browses alerts and rounds, previews the upcoming zine.
 - **Service** — posts/edits/archives its own alerts, sees other services' alerts, reads street-round notes (the feedback loop), can preview the upcoming zine.
 - **Admin** — everything above, plus user management, the zine editor (reorder/exclude/finalize/PDF), and site settings/branding.

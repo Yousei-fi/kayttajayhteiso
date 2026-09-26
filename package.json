@@ -11,7 +11,8 @@
     "db:deploy": "prisma migrate deploy",
     "db:studio": "prisma studio",
     "db:seed": "tsx prisma/seed.ts",
-    "create-admin": "node scripts/create-admin.mjs"
+    "create-admin": "node scripts/create-admin.mjs",
+    "service-accounts": "node scripts/seed-service-accounts.mjs"
   },
   "prisma": {
     "seed": "tsx prisma/seed.ts"
