@@ -41,9 +41,6 @@ yarn-error.log*
 # user-uploaded content and generated PDFs (served via src/app/uploads/[...path])
 /storage/
 
-# printable service-account credentials (plain-text passwords) — never commit
-/palvelutunnukset*.pdf
-
 # vercel
 .vercel
 
