@@ -17,7 +17,7 @@ async function geocode(address) {
   const url = `https://nominatim.openstreetmap.org/search?format=json&limit=1&q=${encodeURIComponent(query)}`;
   const res = await fetch(url, {
     headers: {
-      "User-Agent": "kuntoutus-info2-seed-script/1.0 (one-time geocoding for a nonprofit zine directory)",
+      "User-Agent": "kayttajayhteiso-seed-script/1.0 (one-time geocoding for a nonprofit zine directory)",
       "Accept-Language": "fi",
     },
   });
