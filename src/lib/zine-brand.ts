@@ -1,6 +1,7 @@
 /**
  * The printed paper's own identity, kept apart from the organisation's
- * (Tampereen Käyttäjäyhteisö publishes it, but the paper is its own thing).
+ * (Käyttäjäyhteisö publishes it, but the paper is its own thing). Every area
+ * prints its own edition under the same name.
  *
  * The name and the mark both come from Carl Sagan's "science is a candle in
  * the dark": a small light someone lights on purpose, not a floodlight.
@@ -8,7 +9,9 @@
 export const ZINE_NAME = "Kynttilä pimeydessä";
 
 /** Printed under the mark on the cover, and used as the paper's strapline online. */
-export const ZINE_TAGLINE = "Tampereen Käyttäjäyhteisön lehti";
+export function zineTagline(area: { nameGenitive: string }): string {
+  return `${area.nameGenitive} Käyttäjäyhteisön lehti`;
+}
 
 /**
  * The candle mark, as the inner content of an SVG with viewBox "0 0 48 76".

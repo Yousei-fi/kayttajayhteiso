@@ -5,6 +5,10 @@
  * Interactive:   node scripts/create-admin.mjs
  * Non-interactive (e.g. inside a running container):
  *   node scripts/create-admin.mjs --name "Ylläpitäjä" --email admin@example.com --password "vähintään8merkkiä"
+ *
+ * Without --area the account is a national admin (every area, plus the
+ * national settings). With --area <slug> it is that area's admin only:
+ *   node scripts/create-admin.mjs --area turku --name ... --email ... --password ...
  */
 import { PrismaClient } from "@prisma/client";
 import bcrypt from "bcryptjs";
@@ -28,6 +32,13 @@ function parseArgs() {
 async function main() {
   const args = parseArgs();
   let { name, email, password } = args;
+  const areaId = args.area || null;
+
+  if (areaId && !(await prisma.area.findUnique({ where: { id: areaId } }))) {
+    const areas = await prisma.area.findMany({ select: { id: true } });
+    console.error(`Aluetta "${areaId}" ei ole. Alueet: ${areas.map((a) => a.id).join(", ")}`);
+    process.exit(1);
+  }
 
   if (!name || !email || !password) {
     const rl = readline.createInterface({ input: stdin, output: stdout });
@@ -68,17 +79,21 @@ async function main() {
   if (existing) {
     await prisma.user.update({
       where: { email },
-      data: { role: "ADMIN", active: true, passwordHash, name },
+      data: { role: "ADMIN", active: true, passwordHash, name, areaId },
     });
-    console.log(`\nPäivitetty: ${email} on nyt aktiivinen ylläpitäjä uudella salasanalla.`);
+    console.log(`\nPäivitetty: ${email} on nyt aktiivinen ${scope(areaId)} uudella salasanalla.`);
   } else {
     await prisma.user.create({
-      data: { name, email, passwordHash, role: "ADMIN", active: true },
+      data: { name, email, passwordHash, role: "ADMIN", active: true, areaId },
     });
-    console.log(`\nLuotu uusi ylläpitäjätunnus: ${email}`);
+    console.log(`\nLuotu uusi tunnus: ${email} (${scope(areaId)}).`);
   }
 
   console.log("Kirjaudu osoitteessa /kirjaudu.");
+}
+
+function scope(areaId) {
+  return areaId ? `ylläpitäjä alueella ${areaId}` : "valtakunnallinen ylläpitäjä";
 }
 
 main()

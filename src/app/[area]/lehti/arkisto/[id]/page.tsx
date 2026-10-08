@@ -1,18 +1,16 @@
 import { ZINE_NAME } from "@/lib/zine-brand";
-import { prisma } from "@/lib/db";
+import { areaDb } from "@/lib/db";
+import { requireArea } from "@/lib/area";
 import { getSiteSettings } from "@/lib/settings";
 import { buildZineHtml } from "@/lib/zine-html";
 import { getZineDirectorySections } from "@/lib/zine";
 import { formatDateRange } from "@/lib/week";
 import { notFound } from "next/navigation";
 
-export default async function ArkistoEditionPage({
-  params,
-}: {
-  params: Promise<{ id: string }>;
-}) {
-  const { id } = await params;
-  const edition = await prisma.zineEdition.findUnique({
+export default async function ArkistoEditionPage({ params }: PageProps<"/[area]/lehti/arkisto/[id]">) {
+  const { area: slug, id } = await params;
+  const area = await requireArea(slug);
+  const edition = await areaDb(area.id).zineEdition.findUnique({
     where: { id },
     include: { items: { orderBy: { sortOrder: "asc" } } },
   });
@@ -20,9 +18,9 @@ export default async function ArkistoEditionPage({
 
   const [settings, { services, meetings }] = await Promise.all([
     getSiteSettings(),
-    getZineDirectorySections(edition.startDate, edition.endDate),
+    getZineDirectorySections(edition),
   ]);
-  const html = await buildZineHtml({ edition, settings, services, meetings, mode: "preview" });
+  const html = await buildZineHtml({ edition, settings, area, services, meetings, mode: "preview" });
 
   return (
     <main className="mx-auto max-w-3xl px-4 py-8">

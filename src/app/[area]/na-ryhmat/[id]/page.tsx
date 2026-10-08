@@ -1,16 +1,14 @@
-import { prisma } from "@/lib/db";
+import { areaDb } from "@/lib/db";
+import { requireArea } from "@/lib/area";
 import { formatDate } from "@/lib/week";
 import { isOnBreak } from "@/lib/na-meetings";
 import { notFound } from "next/navigation";
 
-export default async function NaRyhmaPage({
-  params,
-}: {
-  params: Promise<{ id: string }>;
-}) {
-  const { id } = await params;
+export default async function NaRyhmaPage({ params }: PageProps<"/[area]/na-ryhmat/[id]">) {
+  const { area: slug, id } = await params;
+  const area = await requireArea(slug);
 
-  const meeting = await prisma.naMeeting.findUnique({ where: { id } });
+  const meeting = await areaDb(area.id).naMeeting.findUnique({ where: { id } });
   if (!meeting) notFound();
 
   const onBreak = isOnBreak(meeting);

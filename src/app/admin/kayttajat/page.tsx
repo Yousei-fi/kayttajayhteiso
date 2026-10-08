@@ -1,6 +1,7 @@
 import { prisma } from "@/lib/db";
 import { requireUser } from "@/lib/auth";
-import { createUser, toggleUserActive, resetUserPassword } from "./actions";
+import { getAllAreas, isNationalAdmin } from "@/lib/area";
+import { createUser, toggleUserActive, resetUserPassword, setUserArea } from "./actions";
 import { formatDate } from "@/lib/week";
 
 const roleLabel: Record<string, string> = {
@@ -10,8 +11,17 @@ const roleLabel: Record<string, string> = {
 };
 
 export default async function KayttajatPage() {
-  await requireUser("ADMIN");
-  const users = await prisma.user.findMany({ orderBy: { createdAt: "asc" } });
+  const admin = await requireUser("ADMIN");
+  const national = isNationalAdmin(admin);
+  // An area admin sees and manages their own area's accounts only.
+  const [users, areas] = await Promise.all([
+    prisma.user.findMany({
+      where: national ? undefined : { areaId: admin.areaId },
+      orderBy: { createdAt: "asc" },
+    }),
+    getAllAreas(),
+  ]);
+  const areaName = (id: string | null) => areas.find((a) => a.id === id)?.name;
 
   return (
     <div className="flex flex-col gap-8">
@@ -34,6 +44,19 @@ export default async function KayttajatPage() {
               <option value="ADMIN">Ylläpitäjä</option>
             </select>
           </label>
+          {national && (
+            <label className="flex flex-col gap-1 text-sm font-medium">
+              Alue
+              <select name="areaId" className="rounded border border-line bg-paper px-3 py-2">
+                {areas.map((a) => (
+                  <option key={a.id} value={a.id}>
+                    {a.name}
+                  </option>
+                ))}
+                <option value="">Ei aluetta (valtakunnallinen)</option>
+              </select>
+            </label>
+          )}
           <label className="flex flex-col gap-1 text-sm font-medium">
             Palvelun nimi (palvelutileille)
             <input name="serviceName" className="rounded border border-line bg-paper px-3 py-2" />
@@ -56,7 +79,10 @@ export default async function KayttajatPage() {
               <div className="flex flex-wrap items-center justify-between gap-2">
                 <div>
                   <p className="font-semibold">
-                    {u.serviceName || u.name} <span className="text-xs font-normal text-muted">({roleLabel[u.role]})</span>
+                    {u.serviceName || u.name}{" "}
+                    <span className="text-xs font-normal text-muted">
+                      ({roleLabel[u.role]} · {areaName(u.areaId) ?? "valtakunnallinen"})
+                    </span>
                   </p>
                   <p className="text-xs text-muted">
                     {u.email} · liittynyt {formatDate(u.createdAt)} · {u.active ? "Aktiivinen" : "Ei aktiivinen"}
@@ -68,6 +94,25 @@ export default async function KayttajatPage() {
                   </button>
                 </form>
               </div>
+              {national && (
+                <form action={setUserArea.bind(null, u.id)} className="mt-2 flex items-center gap-2 text-sm">
+                  <select
+                    name="areaId"
+                    defaultValue={u.areaId ?? ""}
+                    className="rounded border border-line bg-paper px-2 py-1"
+                  >
+                    {areas.map((a) => (
+                      <option key={a.id} value={a.id}>
+                        {a.name}
+                      </option>
+                    ))}
+                    <option value="">Ei aluetta (valtakunnallinen)</option>
+                  </select>
+                  <button type="submit" className="rounded border border-line px-2 py-1 text-xs font-semibold">
+                    Vaihda alue
+                  </button>
+                </form>
+              )}
               <details className="mt-2 text-sm">
                 <summary className="cursor-pointer text-muted">Aseta uusi salasana</summary>
                 <form action={resetUserPassword.bind(null, u.id)} className="mt-2 flex gap-2">

@@ -1,5 +1,4 @@
-import { prisma } from "@/lib/db";
-import { requireUser } from "@/lib/auth";
+import { requireAreaUser } from "@/lib/auth";
 import { formatDateTime, toDateTimeLocalValue } from "@/lib/week";
 import { notFound } from "next/navigation";
 import { updateCommunityEvent, deleteCommunityEvent } from "../actions";
@@ -10,9 +9,9 @@ export default async function TapahtumaPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  const user = await requireUser("MEMBER", "ADMIN");
+  const { user, db } = await requireAreaUser("MEMBER", "ADMIN");
 
-  const event = await prisma.communityEvent.findUnique({ where: { id }, include: { author: true } });
+  const event = await db.communityEvent.findUnique({ where: { id }, include: { author: true } });
   if (!event) notFound();
 
   const canEdit = user.role === "ADMIN" || event.authorId === user.id;

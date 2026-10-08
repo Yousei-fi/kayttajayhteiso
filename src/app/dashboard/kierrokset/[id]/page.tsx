@@ -1,5 +1,4 @@
-import { prisma } from "@/lib/db";
-import { requireUser } from "@/lib/auth";
+import { requireAreaUser } from "@/lib/auth";
 import { updateStreetRound, deleteStreetRound } from "../actions";
 import { duplicateAsDraftFromRound } from "@/app/dashboard/artikkelit/actions";
 import { formatDate } from "@/lib/week";
@@ -11,8 +10,8 @@ export default async function KierrosPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  const user = await requireUser("MEMBER", "ADMIN", "SERVICE");
-  const round = await prisma.streetRound.findUnique({ where: { id }, include: { author: true } });
+  const { user, db } = await requireAreaUser("MEMBER", "ADMIN", "SERVICE");
+  const round = await db.streetRound.findUnique({ where: { id }, include: { author: true } });
   if (!round) notFound();
 
   const canEdit =
@@ -26,7 +25,7 @@ export default async function KierrosPage({
 
   return (
     <div className="max-w-xl">
-      <h1 className="mb-1 text-xl font-bold">{formatDate(round.date)} {round.area ? `– ${round.area}` : ""}</h1>
+      <h1 className="mb-1 text-xl font-bold">{formatDate(round.date)} {round.place ? `– ${round.place}` : ""}</h1>
       <p className="mb-4 text-xs text-muted">Kirjannut {round.author.name}</p>
 
       {canTurnIntoArticle && (
@@ -60,7 +59,7 @@ export default async function KierrosPage({
           </label>
           <label className="flex flex-col gap-1 text-sm font-medium">
             Alue / reitti
-            <input name="area" defaultValue={round.area ?? ""} className="rounded border border-line bg-paper px-3 py-2" />
+            <input name="place" defaultValue={round.place ?? ""} className="rounded border border-line bg-paper px-3 py-2" />
           </label>
           <label className="flex flex-col gap-1 text-sm font-medium">
             Muistiinpanot

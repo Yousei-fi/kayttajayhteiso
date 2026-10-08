@@ -1,18 +1,23 @@
-import { ZINE_NAME } from "@/lib/zine-brand";
 import Link from "next/link";
 import { getCurrentUser } from "@/lib/auth";
+import { areaPath, getActiveAreas } from "@/lib/area";
+import { getSiteSettings } from "@/lib/settings";
 import { logoutAction } from "@/app/kirjaudu/actions";
 
+/**
+ * The national header, on every page. An area's own sections (palvelut,
+ * NA-ryhmät, lehti...) are in the bar under it, from app/[area]/layout.tsx.
+ */
 export async function SiteHeader() {
-  const user = await getCurrentUser();
+  const [user, areas, settings] = await Promise.all([getCurrentUser(), getActiveAreas(), getSiteSettings()]);
 
   return (
     <header className="border-b border-line bg-paper">
       <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-x-6 gap-y-2 px-4 py-3">
         <Link href="/" className="flex shrink-0 items-center gap-2 whitespace-nowrap text-lg font-bold">
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/branding/logo.jpeg" alt="" className="h-8 w-8 rounded object-cover" />
-          Tampereen Käyttäjäyhteisö
+          <img src={settings.logoPath} alt="" className="h-8 w-8 rounded object-cover" />
+          {settings.orgName}
           <span className="rounded bg-yellow-300 px-1.5 py-0.5 text-[10px] font-bold tracking-wide text-black">
             BETA
           </span>
@@ -21,24 +26,14 @@ export async function SiteHeader() {
           <Link href="/tietoa" className="hover:underline">
             Tietoa
           </Link>
-          <Link href="/ilmoitukset" className="hover:underline">
-            Ilmoitukset
-          </Link>
           <Link href="/artikkelit" className="hover:underline">
             Artikkelit
           </Link>
-          <Link href="/lehti" className="hover:underline">
-            {ZINE_NAME}
-          </Link>
-          <Link href="/tapahtumat" className="hover:underline">
-            Tapahtumat
-          </Link>
-          <Link href="/palvelut" className="hover:underline">
-            Tampereen palvelut
-          </Link>
-          <Link href="/na-ryhmat" className="hover:underline">
-            Tampereen NA-ryhmät
-          </Link>
+          {areas.map((area) => (
+            <Link key={area.id} href={areaPath(area)} className="font-semibold hover:underline">
+              {area.name}
+            </Link>
+          ))}
           {user ? (
             <>
               <Link href="/dashboard" className="font-semibold hover:underline">

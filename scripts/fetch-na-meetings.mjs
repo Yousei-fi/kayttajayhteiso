@@ -1,7 +1,7 @@
 /**
  * One-time (re-run manually to refresh) build step: fetches all NA
  * meetings from NA Suomi's public WordPress REST API, keeps only
- * Tampere ones, and writes prisma/data/na-meetings.json. Mirrors
+ * Tampere ones, and writes prisma/data/<area>/na-meetings.json. Mirrors
  * build-services-data.mjs / geocode-services.mjs in spirit — the running
  * app never calls nasuomi.org itself, it just reads the JSON this
  * produces.
@@ -11,11 +11,9 @@
  * polls weekly).
  */
 import { writeFileSync } from "fs";
-import path from "path";
-import { fileURLToPath } from "url";
+import { areaDataFile } from "./area-arg.mjs";
 
-const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const OUT = path.join(__dirname, "../prisma/data/na-meetings.json");
+const OUT = areaDataFile("na-meetings.json");
 
 const WEEKDAY_INDEX = {
   Maanantai: 1,

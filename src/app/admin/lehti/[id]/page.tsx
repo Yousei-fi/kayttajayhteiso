@@ -1,5 +1,5 @@
 import { prisma } from "@/lib/db";
-import { requireUser } from "@/lib/auth";
+import { requireAreaUser } from "@/lib/auth";
 import { getSiteSettings } from "@/lib/settings";
 import { buildZineHtml } from "@/lib/zine-html";
 import { syncEditionItems, getZineDirectorySections } from "@/lib/zine";
@@ -19,30 +19,26 @@ const itemTypeLabel: Record<ZineContentType, string> = {
   EVENT: "Tapahtuma",
 };
 
-export default async function LehtiEditorPage({
-  params,
-}: {
-  params: Promise<{ id: string }>;
-}) {
+export default async function LehtiEditorPage({ params }: PageProps<"/admin/lehti/[id]">) {
   const { id } = await params;
-  await requireUser("ADMIN");
+  const { area, db } = await requireAreaUser("ADMIN");
 
-  const edition = await prisma.zineEdition.findUnique({ where: { id } });
+  const edition = await db.zineEdition.findUnique({ where: { id } });
   if (!edition) notFound();
 
   if (edition.status === "DRAFT") {
-    await syncEditionItems(edition.id, edition.startDate);
+    await syncEditionItems(edition);
   }
 
   const [items, settings, { services, meetings }] = await Promise.all([
     prisma.zineItem.findMany({ where: { editionId: edition.id }, orderBy: { sortOrder: "asc" } }),
     getSiteSettings(),
-    getZineDirectorySections(edition.startDate, edition.endDate),
+    getZineDirectorySections(edition),
   ]);
   const included = items.filter((i) => !i.excluded);
   const excluded = items.filter((i) => i.excluded);
 
-  const html = await buildZineHtml({ edition: { ...edition, items }, settings, services, meetings, mode: "preview" });
+  const html = await buildZineHtml({ edition: { ...edition, items }, settings, area, services, meetings, mode: "preview" });
   const boundMoveUp = (itemId: string) => moveItem.bind(null, edition.id, itemId, "up");
   const boundMoveDown = (itemId: string) => moveItem.bind(null, edition.id, itemId, "down");
 
@@ -50,7 +46,9 @@ export default async function LehtiEditorPage({
     <div className="flex flex-col gap-6">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
-          <h1 className="text-xl font-bold">{formatDateRange(edition.startDate, edition.endDate)}</h1>
+          <h1 className="text-xl font-bold">
+            {area.name} {formatDateRange(edition.startDate, edition.endDate)}
+          </h1>
           <p className="text-sm text-muted">
             {edition.status === "DRAFT" ? "Luonnos – päivittyy automaattisesti" : "Julkaistu ja lukittu"}
           </p>

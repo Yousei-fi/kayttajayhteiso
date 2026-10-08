@@ -35,10 +35,10 @@ export async function addExperience(
     return { error: "Kirjoita ensin kokemuksesi." };
   }
 
-  await prisma.directoryService.findUniqueOrThrow({ where: { id: serviceId } });
+  const service = await prisma.directoryService.findUniqueOrThrow({ where: { id: serviceId } });
   await prisma.experience.create({ data: { serviceId, body, ipAddress: ip } });
 
-  revalidatePath(`/palvelut/${serviceId}`);
-  revalidatePath("/palvelut");
+  revalidatePath(`/${service.areaId}/palvelut/${serviceId}`);
+  revalidatePath(`/${service.areaId}/palvelut`);
   return {};
 }

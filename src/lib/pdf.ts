@@ -6,13 +6,15 @@ import { STORAGE_DIR } from "@/lib/storage";
 
 /**
  * Renders a full zine HTML document (see buildZineHtml) to an A4 PDF and
- * saves it under the uploads storage dir (served via /uploads/[...path]).
+ * saves it under the uploads storage dir (served via /uploads/[...path]), in
+ * a folder per area: zines/<area>/. PDFs from before areas stay where they
+ * were (zines/), and their editions still point there.
  * Page numbers are added by Chrome's own PDF footer template rather than
  * in-document CSS counters, since that is the reliable way to number pages
  * that Chrome itself paginates.
  */
-export async function renderZinePdf(html: string, filename: string): Promise<string> {
-  const dir = path.join(STORAGE_DIR, "zines");
+export async function renderZinePdf(html: string, areaId: string, filename: string): Promise<string> {
+  const dir = path.join(STORAGE_DIR, "zines", areaId);
   await mkdir(dir, { recursive: true });
 
   const browser = await puppeteer.launch({
@@ -38,7 +40,7 @@ export async function renderZinePdf(html: string, filename: string): Promise<str
 
     const filePath = path.join(dir, filename);
     await writeFile(filePath, pdf);
-    return `/uploads/zines/${filename}`;
+    return `/uploads/zines/${areaId}/${filename}`;
   } finally {
     await browser.close();
   }

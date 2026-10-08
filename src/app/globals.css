@@ -1,6 +1,6 @@
 @import "tailwindcss";
 
-/* Palette sampled from the Tampereen Käyttäjäyhteisö logo (skyline
+/* Palette sampled from the original Tampereen Käyttäjäyhteisö logo (skyline
    purple-to-indigo gradient, magenta-to-blue soundwave accent). */
 :root {
   --background: #f5f2fa;

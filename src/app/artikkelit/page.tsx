@@ -12,7 +12,7 @@ export default async function JulkisetArtikkelitPage() {
   return (
     <main className="mx-auto max-w-2xl px-4 py-8">
       <h1 className="mb-2 text-2xl font-bold">Artikkelit</h1>
-      <p className="mb-6 text-sm text-muted">Tampereen Käyttäjäyhteisön jäsenten kirjoituksia.</p>
+      <p className="mb-6 text-sm text-muted">Käyttäjäyhteisön jäsenten kirjoituksia kaikilta alueilta.</p>
       <ul className="flex flex-col gap-4">
         {articles.map((a) => (
           <li key={a.id} className="rounded border border-line bg-paper p-4">

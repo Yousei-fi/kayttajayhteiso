@@ -1,10 +1,12 @@
 import { renderMarkdown } from "@/lib/markdown";
 import { formatDate, formatDateRange, formatDateTime, formatTime, monthGenitive } from "@/lib/week";
 import { qrCodeSvg } from "@/lib/qrcode";
-import { NA_INTRO_PARAGRAPHS } from "@/lib/na-meetings";
+import { naIntroParagraphs } from "@/lib/na-meetings";
+import { areaOrgName, areaUrl } from "@/lib/area";
 import { compareCategories } from "@/lib/directory";
-import { ZINE_NAME, ZINE_TAGLINE, candleMarkSvg, flameMarkSvg } from "@/lib/zine-brand";
+import { ZINE_NAME, zineTagline, candleMarkSvg, flameMarkSvg } from "@/lib/zine-brand";
 import type {
+  Area,
   DirectoryService,
   Experience,
   NaMeeting,
@@ -122,7 +124,7 @@ function eventMeta(item: ZineItem): EventMeta {
  *
  * Page order: cover (the paper's name and mark, nothing else) -> who we are
  * -> the community's own meetings and events -> contents -> Tiedotteet ->
- * Artikkelit -> Tampereen palvelut (+ that week's Kokemukset) -> Tampereen
+ * Artikkelit -> the area's palvelut (+ that week's Kokemukset) -> the area's
  * NA-ryhmät -> a closing "write for us" page. Services/meetings are always
  * listed in full (they're a reference directory, not curated per-edition);
  * only the services' Kokemukset are scoped to the edition's week. The
@@ -133,13 +135,20 @@ function eventMeta(item: ZineItem): EventMeta {
 export async function buildZineHtml(params: {
   edition: EditionWithItems;
   settings: SiteSettings;
+  /** The edition's area: its name forms head the sections, and its address
+   * and mailbox are what the QR codes point at. */
+  area: Area;
   services: ServiceWithExperiences[];
   meetings: NaMeeting[];
   mode: "preview" | "print";
   /** Origin to prefix root-relative asset paths with (needed for PDF rendering, where there is no page origin to resolve them against). */
   assetBaseUrl?: string;
 }): Promise<string> {
-  const { edition, settings, services, meetings, mode, assetBaseUrl } = params;
+  const { edition, settings, area, services, meetings, mode, assetBaseUrl } = params;
+  const siteUrl = areaUrl(settings, area);
+  const orgName = areaOrgName(area);
+  const aboutText = area.aboutText || settings.aboutText;
+  const submissionEmail = area.submissionEmail;
   const asset = (p: string | null | undefined): string | null => {
     if (!p) return p ?? null;
     if (!assetBaseUrl || !p.startsWith("/")) return p;
@@ -161,20 +170,17 @@ export async function buildZineHtml(params: {
   const articlesTitle = `${monthGenitive(edition.startDate)} luettavaa`;
 
   const [kokemuksetQr, submissionQr] = await Promise.all([
-    settings.publicSiteUrl ? qrCodeSvg(settings.publicSiteUrl) : Promise.resolve(null),
-    settings.submissionEmail ? qrCodeSvg(`mailto:${settings.submissionEmail}`) : Promise.resolve(null),
+    qrCodeSvg(siteUrl),
+    submissionEmail ? qrCodeSvg(`mailto:${submissionEmail}`) : Promise.resolve(null),
   ]);
 
   const sectionTitle = (label: string) =>
     `<h2 class="section-title">${flameMarkSvg("section-flame")}<span>${esc(label)}</span></h2>`;
 
-  const kokemuksetCta = (label: string) =>
-    !settings.publicSiteUrl
-      ? ""
-      : `
+  const kokemuksetCta = (label: string) => `
     <div class="kokemukset-cta">
       ${kokemuksetQr ? `<div class="cta-qr">${kokemuksetQr}</div>` : ""}
-      <p>${esc(label)} <strong>${esc(settings.publicSiteUrl)}</strong></p>
+      <p>${esc(label)} <strong>${esc(siteUrl)}</strong></p>
     </div>`;
 
   const coverHtml = `
@@ -183,20 +189,20 @@ export async function buildZineHtml(params: {
       <div class="cover-mark">${candleMarkSvg("candle-mark")}</div>
       <h1 class="cover-title">${esc(ZINE_NAME).replace(" ", "<br />")}</h1>
       <div class="cover-rules"><span></span><span></span></div>
-      <p class="cover-tagline">${esc(ZINE_TAGLINE)}</p>
+      <p class="cover-tagline">${esc(zineTagline(area))}</p>
       <p class="cover-date">${esc(dateRange)}</p>
     </div>
   </section>`;
 
   const infoHtml = `
   <section class="info-page">
-    ${sectionTitle(settings.orgName)}
+    ${sectionTitle(orgName)}
     ${
       settings.logoPath
-        ? `<img class="info-logo" src="${esc(asset(settings.logoPath)!)}" alt="${esc(settings.orgName)}" />`
+        ? `<img class="info-logo" src="${esc(asset(settings.logoPath)!)}" alt="${esc(orgName)}" />`
         : ""
     }
-    ${settings.aboutText ? `<div class="info-body">${renderMarkdown(settings.aboutText)}</div>` : ""}
+    ${aboutText ? `<div class="info-body">${renderMarkdown(aboutText)}</div>` : ""}
   </section>`;
 
   const eventsHtml =
@@ -245,8 +251,8 @@ export async function buildZineHtml(params: {
             </li>`
           : ""
       }
-      <li>Tampereen palvelut <span>(${services.length})</span></li>
-      <li>Tampereen NA-ryhmät <span>(${meetings.length})</span></li>
+      <li>${esc(area.nameGenitive)} palvelut <span>(${services.length})</span></li>
+      <li>${esc(area.nameGenitive)} NA-ryhmät <span>(${meetings.length})</span></li>
       <li>Kirjoita meille</li>
     </ul>
   </section>`;
@@ -294,9 +300,9 @@ export async function buildZineHtml(params: {
   const servicesWithNews = services.filter((s) => s.experiences.length > 0);
   const servicesHtml = `
   <section class="directory">
-    ${sectionTitle("Tampereen palvelut")}
+    ${sectionTitle(`${area.nameGenitive} palvelut`)}
     <p class="section-lead">
-      Hakemisto Tampereen päihde- ja mielenterveyspalveluista, järjestöistä ja vertaistuesta.
+      Hakemisto ${esc(area.nameGenitive)} päihde- ja mielenterveyspalveluista, järjestöistä ja vertaistuesta.
       Tämä ei ole kattava lista — täydennämme sitä sitä mukaa kun tietoa kertyy.
     </p>
     <div class="tel-book">
@@ -345,9 +351,9 @@ export async function buildZineHtml(params: {
 
   const meetingsHtml = `
   <section class="directory">
-    ${sectionTitle("Tampereen NA-ryhmät")}
+    ${sectionTitle(`${area.nameGenitive} NA-ryhmät`)}
     <div class="na-intro">
-      ${NA_INTRO_PARAGRAPHS.map((para) => `<p>${esc(para)}</p>`).join("")}
+      ${naIntroParagraphs(area).map((para) => `<p>${esc(para)}</p>`).join("")}
     </div>
     <div class="tel-book">
       ${groupByWeekday(meetings)
@@ -371,13 +377,13 @@ export async function buildZineHtml(params: {
   </section>`;
 
   const finalHtml =
-    !settings.submissionEmail
+    !submissionEmail
       ? ""
       : `
   <section class="final-page">
     ${submissionQr ? `<div class="cta-qr large">${submissionQr}</div>` : ""}
     <p class="final-question">Haluatko kirjoituksesi seuraavaan lehteen?</p>
-    <p>Ota yhteyttä sähköpostitse: <strong>${esc(settings.submissionEmail)}</strong></p>
+    <p>Ota yhteyttä sähköpostitse: <strong>${esc(submissionEmail)}</strong></p>
     <p class="final-alt">Tai pyydä lehden jakajaa kirjaamaan ylös kuulumisesi!</p>
     <div class="final-mark">${candleMarkSvg("candle-mark")}</div>
     <p class="final-name">${esc(ZINE_NAME)}</p>
@@ -667,7 +673,7 @@ function zineCss(mode: "preview" | "print"): string {
     }
     .dir-row strong { margin-right: 4px; font-family: var(--display); font-size: 12px; text-transform: uppercase; }
 
-    /* Phonebook listing for Tampereen palvelut: two columns of
+    /* Phonebook listing for the area's palvelut: two columns of
        name / short description / phone entries, kept dense because the
        directory is long and still growing. */
     .tel-book { column-count: 2; column-gap: 7mm; column-rule: 0.3mm solid var(--line); }

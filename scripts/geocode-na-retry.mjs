@@ -1,9 +1,7 @@
 import { readFileSync, writeFileSync } from "fs";
-import path from "path";
-import { fileURLToPath } from "url";
+import { areaDataFile } from "./area-arg.mjs";
 
-const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const FILE = path.join(__dirname, "../prisma/data/na-meetings.json");
+const FILE = areaDataFile("na-meetings.json");
 
 async function geocode(query) {
   const url = `https://nominatim.openstreetmap.org/search?format=json&limit=1&q=${encodeURIComponent(query)}`;

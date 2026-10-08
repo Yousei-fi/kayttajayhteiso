@@ -1,14 +1,15 @@
 /**
- * Syncs real reference data (the Tampere service directory + Tampere NA
- * meetings) from the JSON files scripts/build-services-data.mjs,
- * scripts/fetch-na-meetings.mjs and friends produce. Unlike prisma/seed.ts
+ * Syncs real reference data (each area's service directory and NA meetings)
+ * from the JSON files under prisma/data/<area>/ that
+ * scripts/build-services-data.mjs, scripts/fetch-na-meetings.mjs and friends
+ * produce. An area with no folder there is skipped. Unlike prisma/seed.ts
  * (fake "[DEMO]" content, opt-in via SEED_DEMO_DATA), this is real content
  * meant to exist in every environment, so it runs unconditionally on every
  * container boot (see docker/entrypoint.sh) as well as from `npm run
  * db:seed`. Upserts are keyed so re-running never duplicates rows.
  */
 import { PrismaClient } from "@prisma/client";
-import { readFileSync } from "fs";
+import { existsSync, readFileSync } from "fs";
 import path from "path";
 
 const prisma = new PrismaClient();
@@ -23,7 +24,7 @@ Yhteisöömme ovat tervetulleet niin huumeidenkäyttäjät, kuin niitä ennen k�
 
 const REAL_EMAIL = "tampere@kayttajayhteiso.fi";
 const REAL_TELEGRAM = "http://dy.fi/7zs";
-const REAL_SITE_URL = "https://tampere.kayttajayhteiso.fi";
+const REAL_SITE_URL = "https://kayttajayhteiso.fi";
 // Seeded onto every install until it was dropped from the paper and the
 // site. Cleared below wherever it is still exactly this text, so existing
 // databases lose it too; a back-page text an admin has since written
@@ -31,12 +32,12 @@ const REAL_SITE_URL = "https://tampere.kayttajayhteiso.fi";
 const RETIRED_BACKPAGE_TEXT =
   "**Haittojen vähentäminen:**\n\n- Älä käytä yksin.\n- Naloksoni pelastaa hengen yliannostuksessa.\n- Terveysneuvontapisteistä saa puhtaita välineitä maksutta.\n";
 
-// Values seed.ts originally used as placeholders — only replaced if a
-// SiteSettings row still holds exactly one of these, so an admin's own
-// edits (made through /admin/asetukset after this ran once) are never
-// silently overwritten on a later boot.
+// Values seed.ts originally used as placeholders — only replaced if a row
+// still holds exactly one of these, so an admin's own edits (made through
+// /admin/asetukset after this ran once) are never silently overwritten on a
+// later boot. The Tampere logo was the site's own before it went national.
 const STALE_DEFAULTS = {
-  logoPath: "/branding/logo-placeholder.svg",
+  logoPaths: ["/branding/logo-placeholder.svg", "/branding/logo.jpeg"],
   socialInfo: "@tampereenkayttajayhteiso",
 };
 
@@ -51,33 +52,20 @@ const RETIRED_CONTACT_EMAILS = [
   "trekayttajayhteiso@proton.me",
 ];
 const RETIRED_SUBMISSION_EMAILS = ["trekayttajayhteiso@proton.me"];
-const RETIRED_SITE_URLS = ["https://kuntoutus.info"];
+const RETIRED_SITE_URLS = ["https://kuntoutus.info", "https://tampere.kayttajayhteiso.fi"];
 
+/** The national row. The about text Tampere wrote stays Tampere's (below). */
 async function syncSiteSettings(): Promise<void> {
   const existing = await prisma.siteSettings.findUnique({ where: { id: 1 } });
 
   if (!existing) {
-    await prisma.siteSettings.create({
-      data: {
-        id: 1,
-        aboutText: REAL_ABOUT_TEXT,
-        contactInfo: REAL_EMAIL,
-        socialInfo: REAL_TELEGRAM,
-        submissionEmail: REAL_EMAIL,
-        publicSiteUrl: REAL_SITE_URL,
-      },
-    });
+    await prisma.siteSettings.create({ data: { id: 1, publicSiteUrl: REAL_SITE_URL } });
     console.log("SiteSettings: luotu oletusarvoilla.");
     return;
   }
 
   const fixes: Record<string, string> = {};
-  if (existing.logoPath === STALE_DEFAULTS.logoPath) fixes.logoPath = "/branding/logo.jpeg";
-  if (!existing.aboutText) fixes.aboutText = REAL_ABOUT_TEXT;
-  if (!existing.contactInfo || RETIRED_CONTACT_EMAILS.includes(existing.contactInfo)) fixes.contactInfo = REAL_EMAIL;
-  if (!existing.socialInfo || existing.socialInfo === STALE_DEFAULTS.socialInfo) fixes.socialInfo = REAL_TELEGRAM;
-  if (!existing.submissionEmail || RETIRED_SUBMISSION_EMAILS.includes(existing.submissionEmail))
-    fixes.submissionEmail = REAL_EMAIL;
+  if (STALE_DEFAULTS.logoPaths.includes(existing.logoPath)) fixes.logoPath = "/branding/kayttajayhteiso.jpg";
   if (!existing.publicSiteUrl || RETIRED_SITE_URLS.includes(existing.publicSiteUrl))
     fixes.publicSiteUrl = REAL_SITE_URL;
   if (existing.backPageText === RETIRED_BACKPAGE_TEXT) fixes.backPageText = "";
@@ -85,6 +73,28 @@ async function syncSiteSettings(): Promise<void> {
   if (Object.keys(fixes).length > 0) {
     await prisma.siteSettings.update({ where: { id: 1 }, data: fixes });
     console.log(`SiteSettings: korjattu ${Object.keys(fixes).join(", ")}.`);
+  }
+}
+
+/**
+ * Tampere's contact details and about text, which were the whole site's
+ * until areas existed. The Area row itself comes from the areas migration;
+ * this fills in what an install seeded from an older build is missing.
+ */
+async function syncTampere(): Promise<void> {
+  const existing = await prisma.area.findUnique({ where: { id: "tampere" } });
+  if (!existing) return;
+
+  const fixes: Record<string, string> = {};
+  if (!existing.aboutText) fixes.aboutText = REAL_ABOUT_TEXT;
+  if (!existing.contactInfo || RETIRED_CONTACT_EMAILS.includes(existing.contactInfo)) fixes.contactInfo = REAL_EMAIL;
+  if (!existing.socialInfo || existing.socialInfo === STALE_DEFAULTS.socialInfo) fixes.socialInfo = REAL_TELEGRAM;
+  if (!existing.submissionEmail || RETIRED_SUBMISSION_EMAILS.includes(existing.submissionEmail))
+    fixes.submissionEmail = REAL_EMAIL;
+
+  if (Object.keys(fixes).length > 0) {
+    await prisma.area.update({ where: { id: "tampere" }, data: fixes });
+    console.log(`Tampere: korjattu ${Object.keys(fixes).join(", ")}.`);
   }
 }
 
@@ -118,18 +128,20 @@ type NaMeetingEntry = {
 };
 
 /**
- * Deletes directory rows the source list no longer contains, so renaming or
- * dropping an entry actually removes it instead of leaving the old row
- * beside the new one (the upserts above are keyed on category + name, so a
- * rename reads as an addition).
+ * Deletes the area's directory rows its source list no longer contains, so
+ * renaming or dropping an entry actually removes it instead of leaving the
+ * old row beside the new one (the upserts are keyed on area + category +
+ * name, so a rename reads as an addition). Only this area's rows are
+ * considered: seeding Turku never touches Tampere's directory.
  *
  * An entry someone has attached a Kokemus to is kept and reported instead:
  * deleting it would cascade that note away, and losing what a person wrote
  * is worse than carrying a stale row until an admin looks at it.
  */
-async function pruneDirectory(directory: DirectoryEntry[]): Promise<void> {
+async function pruneDirectory(areaId: string, directory: DirectoryEntry[]): Promise<void> {
   const current = new Set(directory.map((d) => `${d.category}\u0000${d.name}`));
   const rows = await prisma.directoryService.findMany({
+    where: { areaId },
     select: { id: true, category: true, name: true, _count: { select: { experiences: true } } },
   });
 
@@ -139,23 +151,27 @@ async function pruneDirectory(directory: DirectoryEntry[]): Promise<void> {
 
   if (removable.length > 0) {
     await prisma.directoryService.deleteMany({ where: { id: { in: removable.map((r) => r.id) } } });
-    console.log(`Palveluhakemisto: poistettu ${removable.length} vanhentunutta kohdetta.`);
+    console.log(`Palveluhakemisto (${areaId}): poistettu ${removable.length} vanhentunutta kohdetta.`);
   }
   for (const row of kept) {
     console.log(
-      `Palveluhakemisto: "${row.name}" ei ole enää listalla, mutta siihen liittyy kokemuksia — jätetty poistamatta.`,
+      `Palveluhakemisto (${areaId}): "${row.name}" ei ole enää listalla, mutta siihen liittyy kokemuksia — jätetty poistamatta.`,
     );
   }
 }
 
-export async function seedReferenceData(): Promise<void> {
-  await syncSiteSettings();
+function readAreaData<T>(areaId: string, name: string): T | null {
+  const file = path.join(__dirname, "data", areaId, name);
+  return existsSync(file) ? (JSON.parse(readFileSync(file, "utf-8")) as T) : null;
+}
 
-  const directoryPath = path.join(__dirname, "data", "services.json");
-  const directory: DirectoryEntry[] = JSON.parse(readFileSync(directoryPath, "utf-8"));
+async function syncDirectory(areaId: string): Promise<void> {
+  const directory = readAreaData<DirectoryEntry[]>(areaId, "services.json");
+  if (!directory) return;
+
   for (const entry of directory) {
     await prisma.directoryService.upsert({
-      where: { category_name: { category: entry.category, name: entry.name } },
+      where: { areaId_category_name: { areaId, category: entry.category, name: entry.name } },
       update: {
         address: entry.address,
         phone: entry.phone,
@@ -163,17 +179,23 @@ export async function seedReferenceData(): Promise<void> {
         lat: entry.lat,
         lng: entry.lng,
       },
-      create: entry,
+      create: { ...entry, areaId },
     });
   }
-  console.log(`Palveluhakemisto: ${directory.length} kohdetta (${directory.filter((d) => d.lat).length} kartalla).`);
+  console.log(
+    `Palveluhakemisto (${areaId}): ${directory.length} kohdetta (${directory.filter((d) => d.lat).length} kartalla).`,
+  );
 
-  await pruneDirectory(directory);
+  await pruneDirectory(areaId, directory);
+}
 
-  const meetingsPath = path.join(__dirname, "data", "na-meetings.json");
-  const meetings: NaMeetingEntry[] = JSON.parse(readFileSync(meetingsPath, "utf-8"));
+async function syncNaMeetings(areaId: string): Promise<void> {
+  const meetings = readAreaData<NaMeetingEntry[]>(areaId, "na-meetings.json");
+  if (!meetings) return;
+
   for (const m of meetings) {
     const data = {
+      areaId,
       name: m.name,
       weekday: m.weekday,
       weekdayIndex: m.weekdayIndex,
@@ -191,13 +213,25 @@ export async function seedReferenceData(): Promise<void> {
       sourceUrl: m.sourceUrl,
       cancelled: false,
     };
+    // sourceId is nasuomi.org's own id, unique across the country.
     await prisma.naMeeting.upsert({
       where: { sourceId: m.sourceId },
       update: data,
       create: { sourceId: m.sourceId, ...data },
     });
   }
-  console.log(`NA-ryhmät (Tampere): ${meetings.length} kokousta (${meetings.filter((m) => m.lat).length} kartalla).`);
+  console.log(`NA-ryhmät (${areaId}): ${meetings.length} kokousta (${meetings.filter((m) => m.lat).length} kartalla).`);
+}
+
+export async function seedReferenceData(): Promise<void> {
+  await syncSiteSettings();
+  await syncTampere();
+
+  const areas = await prisma.area.findMany({ orderBy: { sortOrder: "asc" } });
+  for (const area of areas) {
+    await syncDirectory(area.id);
+    await syncNaMeetings(area.id);
+  }
 }
 
 if (require.main === module) {

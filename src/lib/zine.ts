@@ -1,6 +1,6 @@
-import { prisma } from "@/lib/db";
+import { prisma, areaDb } from "@/lib/db";
 import { articleWindowStart, upcomingEditionRange } from "@/lib/week";
-import type { ZineEdition } from "@prisma/client";
+import type { Area, ZineEdition } from "@prisma/client";
 
 /**
  * The directory (services, NA meetings) for the zine's "Palvelut"/
@@ -14,16 +14,17 @@ import type { ZineEdition } from "@prisma/client";
  * Kokemukset: posting them was removed, so the section is the meeting
  * list alone.
  */
-export async function getZineDirectorySections(weekStart: Date, weekEnd: Date) {
-  const weekEndExclusive = new Date(weekEnd.getTime() + 24 * 60 * 60 * 1000);
-  const experienceWindow = { gte: weekStart, lt: weekEndExclusive };
+export async function getZineDirectorySections(edition: Pick<ZineEdition, "areaId" | "startDate" | "endDate">) {
+  const db = areaDb(edition.areaId);
+  const weekEndExclusive = new Date(edition.endDate.getTime() + 24 * 60 * 60 * 1000);
+  const experienceWindow = { gte: edition.startDate, lt: weekEndExclusive };
 
   const [services, meetings] = await Promise.all([
-    prisma.directoryService.findMany({
+    db.directoryService.findMany({
       orderBy: [{ category: "asc" }, { name: "asc" }],
       include: { experiences: { where: { createdAt: experienceWindow }, orderBy: { createdAt: "desc" } } },
     }),
-    prisma.naMeeting.findMany({
+    db.naMeeting.findMany({
       where: { cancelled: false },
       orderBy: [{ weekdayIndex: "asc" }, { time: "asc" }],
     }),
@@ -33,7 +34,7 @@ export async function getZineDirectorySections(weekStart: Date, weekEnd: Date) {
 }
 
 /**
- * Finds (or creates) the DRAFT edition for the upcoming Monday-Sunday
+ * Finds (or creates) the area's DRAFT edition for the upcoming Monday-Sunday
  * period, then syncs its items against currently-qualifying alerts and
  * articles: new qualifying content is appended, content that no longer
  * qualifies is dropped, and content still qualifying has its snapshot
@@ -44,26 +45,33 @@ export async function getZineDirectorySections(weekStart: Date, weekEnd: Date) {
  * several consecutive issues before ageing out; community events qualify
  * while they are still ahead of the edition, however far ahead that is —
  * a date people need to plan around is worth printing early.
+ *
+ * Alerts and events are the area's own; articles are national, so every
+ * area's edition draws on the same ones.
  */
-export async function getSyncedUpcomingEdition(): Promise<ZineEdition> {
+export async function getSyncedUpcomingEdition(area: Pick<Area, "id">): Promise<ZineEdition> {
   const { startDate, endDate } = upcomingEditionRange();
 
-  const edition = await prisma.zineEdition.upsert({
-    where: { startDate_endDate: { startDate, endDate } },
+  const edition = await areaDb(area.id).zineEdition.upsert({
+    where: { areaId_startDate_endDate: { areaId: area.id, startDate, endDate } },
     update: {},
-    create: { startDate, endDate, status: "DRAFT" },
+    create: { areaId: area.id, startDate, endDate, status: "DRAFT" },
   });
 
   if (edition.status === "DRAFT") {
-    await syncEditionItems(edition.id, startDate);
+    await syncEditionItems(edition);
   }
 
   return edition;
 }
 
-export async function syncEditionItems(editionId: string, weekStart: Date): Promise<void> {
+export async function syncEditionItems(
+  edition: Pick<ZineEdition, "id" | "areaId" | "startDate">,
+): Promise<void> {
+  const db = areaDb(edition.areaId);
+  const { id: editionId, startDate: weekStart } = edition;
   const [alerts, articles, events, existingItems] = await Promise.all([
-    prisma.alert.findMany({
+    db.alert.findMany({
       where: {
         archived: false,
         includeInZine: true,
@@ -79,7 +87,7 @@ export async function syncEditionItems(editionId: string, weekStart: Date): Prom
       },
       include: { author: true },
     }),
-    prisma.communityEvent.findMany({
+    db.communityEvent.findMany({
       where: {
         includeInZine: true,
         OR: [{ endsAt: { gte: weekStart } }, { endsAt: null, startsAt: { gte: weekStart } }],

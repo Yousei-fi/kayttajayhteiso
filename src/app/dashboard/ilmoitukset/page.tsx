@@ -1,6 +1,5 @@
 import Link from "next/link";
-import { prisma } from "@/lib/db";
-import { requireUser } from "@/lib/auth";
+import { requireAreaUser } from "@/lib/auth";
 import { formatDate } from "@/lib/week";
 import { duplicateAlert, archiveAlert } from "./actions";
 
@@ -9,12 +8,12 @@ export default async function IlmoituksetPage({
 }: {
   searchParams: Promise<{ muut?: string }>;
 }) {
-  const user = await requireUser("SERVICE", "MEMBER", "ADMIN");
+  const { user, db } = await requireAreaUser("SERVICE", "MEMBER", "ADMIN");
   const { muut } = await searchParams;
 
   const isServiceOwnView = user.role === "SERVICE" && muut !== "1";
 
-  const alerts = await prisma.alert.findMany({
+  const alerts = await db.alert.findMany({
     where: isServiceOwnView
       ? { serviceUserId: user.id }
       : user.role === "SERVICE"

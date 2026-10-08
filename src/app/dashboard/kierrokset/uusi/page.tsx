@@ -34,7 +34,7 @@ export default async function UusiKierrosPage() {
 
         <label className="flex flex-col gap-1 text-sm font-medium">
           Alue / reitti (valinnainen)
-          <input name="area" placeholder="esim. Keskusta / Tullintori" className="rounded border border-line bg-paper px-3 py-2" />
+          <input name="place" placeholder="esim. Keskusta / Tullintori" className="rounded border border-line bg-paper px-3 py-2" />
         </label>
 
         <label className="flex flex-col gap-1 text-sm font-medium">

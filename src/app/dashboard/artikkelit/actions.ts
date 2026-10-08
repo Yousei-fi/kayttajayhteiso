@@ -1,7 +1,7 @@
 "use server";
 
 import { prisma } from "@/lib/db";
-import { requireUser } from "@/lib/auth";
+import { requireUser, requireAreaUser } from "@/lib/auth";
 import { saveImageUpload } from "@/lib/uploads";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
@@ -78,13 +78,13 @@ export async function deleteArticle(articleId: string): Promise<void> {
 }
 
 export async function duplicateAsDraftFromRound(roundId: string): Promise<void> {
-  const user = await requireUser("MEMBER", "ADMIN");
-  const round = await prisma.streetRound.findUniqueOrThrow({ where: { id: roundId } });
+  const { user, db } = await requireAreaUser("MEMBER", "ADMIN");
+  const round = await db.streetRound.findUniqueOrThrow({ where: { id: roundId } });
 
   const article = await prisma.article.create({
     data: {
       authorId: user.id,
-      title: `Havainto katukierrokselta ${round.area ?? ""}`.trim(),
+      title: `Havainto katukierrokselta ${round.place ?? ""}`.trim(),
       body: round.notes,
       status: "DRAFT",
       includeInZine: false,

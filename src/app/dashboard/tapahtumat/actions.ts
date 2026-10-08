@@ -1,7 +1,6 @@
 "use server";
 
-import { prisma } from "@/lib/db";
-import { requireUser } from "@/lib/auth";
+import { requireAreaUser } from "@/lib/auth";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 
@@ -49,50 +48,50 @@ function readEventFields(formData: FormData): EventFields {
  * calendar, and the zine previews (whose upcoming DRAFT edition re-syncs
  * its items on render).
  */
-function revalidateEventPages(eventId?: string): void {
+function revalidateEventPages(areaId: string, eventId?: string): void {
   revalidatePath("/dashboard/tapahtumat");
   if (eventId) revalidatePath(`/dashboard/tapahtumat/${eventId}`);
-  revalidatePath("/tapahtumat");
-  revalidatePath("/");
+  revalidatePath(`/${areaId}/tapahtumat`);
+  revalidatePath(`/${areaId}`);
   revalidatePath("/dashboard/lehti");
 }
 
 export async function createCommunityEvent(formData: FormData): Promise<void> {
-  const user = await requireUser("MEMBER", "ADMIN");
+  const { user, area, db } = await requireAreaUser("MEMBER", "ADMIN");
   const fields = readEventFields(formData);
 
-  const event = await prisma.communityEvent.create({
-    data: { authorId: user.id, ...fields },
+  const event = await db.communityEvent.create({
+    data: { areaId: area.id, authorId: user.id, ...fields },
   });
 
-  revalidateEventPages();
+  revalidateEventPages(area.id);
   redirect(`/dashboard/tapahtumat/${event.id}`);
 }
 
 export async function updateCommunityEvent(eventId: string, formData: FormData): Promise<void> {
-  const user = await requireUser("MEMBER", "ADMIN");
-  const event = await prisma.communityEvent.findUniqueOrThrow({ where: { id: eventId } });
+  const { user, db } = await requireAreaUser("MEMBER", "ADMIN");
+  const event = await db.communityEvent.findUniqueOrThrow({ where: { id: eventId } });
   if (user.role !== "ADMIN" && event.authorId !== user.id) {
     throw new Error("Ei oikeutta muokata tätä tapahtumaa.");
   }
 
-  await prisma.communityEvent.update({
+  await db.communityEvent.update({
     where: { id: event.id },
     data: readEventFields(formData),
   });
 
-  revalidateEventPages(event.id);
+  revalidateEventPages(event.areaId, event.id);
 }
 
 export async function deleteCommunityEvent(eventId: string): Promise<void> {
-  const user = await requireUser("MEMBER", "ADMIN");
-  const event = await prisma.communityEvent.findUniqueOrThrow({ where: { id: eventId } });
+  const { user, db } = await requireAreaUser("MEMBER", "ADMIN");
+  const event = await db.communityEvent.findUniqueOrThrow({ where: { id: eventId } });
   if (user.role !== "ADMIN" && event.authorId !== user.id) {
     throw new Error("Ei oikeutta poistaa tätä tapahtumaa.");
   }
 
-  await prisma.communityEvent.delete({ where: { id: event.id } });
+  await db.communityEvent.delete({ where: { id: event.id } });
 
-  revalidateEventPages();
+  revalidateEventPages(event.areaId);
   redirect("/dashboard/tapahtumat");
 }

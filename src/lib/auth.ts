@@ -2,7 +2,8 @@ import "server-only";
 import { cookies } from "next/headers";
 import { randomBytes } from "crypto";
 import bcrypt from "bcryptjs";
-import { prisma } from "@/lib/db";
+import { prisma, areaDb } from "@/lib/db";
+import { getWorkingArea } from "@/lib/area";
 import type { Role, User } from "@prisma/client";
 
 const SESSION_COOKIE = "kk_session";
@@ -76,6 +77,21 @@ export async function requireUser(...roles: Role[]): Promise<User> {
     throw new AuthError("EI_OIKEUKSIA");
   }
   return user;
+}
+
+/**
+ * requireUser, plus the area the user is working in and a client scoped to
+ * it. Everything on the dashboard tied to a place (alerts, events, street
+ * rounds, the upcoming paper) goes through `db`, so a row from another area
+ * is simply not found.
+ */
+export async function requireAreaUser(...roles: Role[]) {
+  const user = await requireUser(...roles);
+  const area = await getWorkingArea(user);
+  if (!area) {
+    throw new AuthError("EI_ALUETTA");
+  }
+  return { user, area, db: areaDb(area.id) };
 }
 
 export class AuthError extends Error {}

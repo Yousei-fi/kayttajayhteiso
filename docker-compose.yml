@@ -3,7 +3,7 @@
 # and uploaded images/PDFs. No separate database service is needed.
 #
 # On Coolify: create the resource from this repo/compose file, assign the
-# site's domain (https://tampere.kayttajayhteiso.fi) to the "app" service
+# site's domain (https://kayttajayhteiso.fi) to the "app" service
 # in the Coolify UI (it detects the exposed port below), and set APP_URL to
 # that same https:// domain — it's used to build absolute image URLs inside
 # generated PDFs. Do not add a host port mapping here; Coolify's Traefik

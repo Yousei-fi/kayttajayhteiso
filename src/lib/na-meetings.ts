@@ -1,4 +1,4 @@
-import type { NaMeeting } from "@prisma/client";
+import type { Area, NaMeeting } from "@prisma/client";
 
 const WEEKDAY_ORDER = [
   "Maanantai",
@@ -49,12 +49,14 @@ export function getUpcomingMeetings(
 }
 
 /**
- * The public introduction to NA, shown both on /na-ryhmat and at the head
- * of the zine's "Tampereen NA-ryhmät" section. Kept here as a single
+ * The public introduction to NA, shown both on /<area>/na-ryhmat and at the
+ * head of the paper's "<Area> NA-ryhmät" section. Kept here as a single
  * source so the printed and the online wording cannot drift apart.
  */
-export const NA_INTRO_PARAGRAPHS = [
-  "Nimettömät Narkomaanit on pitkäikäinen kansainvälinen yhteisö joka tarjoaa vertaistukea huumeidenkäyttäjille jotka pyrkivät päihteettömään elämään.",
-  "NA (Narcotics Anonymous) ryhmiä on myös paljon Tampereella ja jokainen joka kokee käyttönsä olevan ongelma on tervetullut käymään ryhmissä ja lähteä saa yhtä vapaasti.",
-  "Yleensä ryhmissä toivotaan että ei puhuisi ryhmän ollessa käynnissä jos on päihtyneenä, mutta paikalle saa tulla ja jutella muiden kanssa ennen ryhmää ja sen jälkeen.",
-];
+export function naIntroParagraphs(area: Pick<Area, "nameInessive">): string[] {
+  return [
+    "Nimettömät Narkomaanit on pitkäikäinen kansainvälinen yhteisö joka tarjoaa vertaistukea huumeidenkäyttäjille jotka pyrkivät päihteettömään elämään.",
+    `NA (Narcotics Anonymous) ryhmiä on myös paljon ${area.nameInessive} ja jokainen joka kokee käyttönsä olevan ongelma on tervetullut käymään ryhmissä ja lähteä saa yhtä vapaasti.`,
+    "Yleensä ryhmissä toivotaan että ei puhuisi ryhmän ollessa käynnissä jos on päihtyneenä, mutta paikalle saa tulla ja jutella muiden kanssa ennen ryhmää ja sen jälkeen.",
+  ];
+}

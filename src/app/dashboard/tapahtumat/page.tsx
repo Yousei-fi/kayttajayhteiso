@@ -1,13 +1,12 @@
 import Link from "next/link";
-import { prisma } from "@/lib/db";
-import { requireUser } from "@/lib/auth";
+import { requireAreaUser } from "@/lib/auth";
 import { formatDateTime } from "@/lib/week";
 
 export default async function TapahtumatPage() {
-  const user = await requireUser("MEMBER", "ADMIN");
+  const { user, db } = await requireAreaUser("MEMBER", "ADMIN");
 
   const now = new Date();
-  const events = await prisma.communityEvent.findMany({
+  const events = await db.communityEvent.findMany({
     orderBy: { startsAt: "asc" },
     include: { author: true },
   });

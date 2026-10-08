@@ -2,14 +2,24 @@
 
 import { prisma } from "@/lib/db";
 import { requireUser } from "@/lib/auth";
+import { canActInArea } from "@/lib/area";
 import { revalidatePath } from "next/cache";
 
+/** An area admin moderates their own area's Kokemukset; a national admin, all. */
 export async function deleteExperience(experienceId: string): Promise<void> {
-  await requireUser("ADMIN");
+  const admin = await requireUser("ADMIN");
+  const experience = await prisma.experience.findUniqueOrThrow({
+    where: { id: experienceId },
+    include: { service: { select: { areaId: true } }, meeting: { select: { areaId: true } } },
+  });
+  const areaId = experience.service?.areaId ?? experience.meeting?.areaId;
+  if (!areaId || !canActInArea(admin, areaId)) {
+    throw new Error("Ei oikeutta poistaa tätä kokemusta.");
+  }
+
   await prisma.experience.delete({ where: { id: experienceId } });
   revalidatePath("/admin/kokemukset");
-  revalidatePath("/palvelut");
-  revalidatePath("/na-ryhmat");
+  revalidatePath(`/${areaId}/palvelut`, "layout");
 }
 
 export async function banIp(formData: FormData): Promise<void> {

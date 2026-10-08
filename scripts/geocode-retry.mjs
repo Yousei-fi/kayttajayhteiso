@@ -1,9 +1,7 @@
 import { readFileSync, writeFileSync } from "fs";
-import path from "path";
-import { fileURLToPath } from "url";
+import { areaDataFile } from "./area-arg.mjs";
 
-const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const FILE = path.join(__dirname, "../prisma/data/services.json");
+const FILE = areaDataFile("services.json");
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
 // Manual queries for addresses that survive simplify() and still miss.

@@ -1,17 +1,15 @@
-import { prisma } from "@/lib/db";
+import { areaDb } from "@/lib/db";
+import { requireArea } from "@/lib/area";
 import { formatDate } from "@/lib/week";
 import { notFound } from "next/navigation";
 import { addExperience } from "./actions";
 import { ExperienceForm } from "@/components/experience-form";
 
-export default async function PalveluPage({
-  params,
-}: {
-  params: Promise<{ id: string }>;
-}) {
-  const { id } = await params;
+export default async function PalveluPage({ params }: PageProps<"/[area]/palvelut/[id]">) {
+  const { area: slug, id } = await params;
+  const area = await requireArea(slug);
 
-  const service = await prisma.directoryService.findUnique({
+  const service = await areaDb(area.id).directoryService.findUnique({
     where: { id },
     include: { experiences: { orderBy: { createdAt: "desc" } } },
   });

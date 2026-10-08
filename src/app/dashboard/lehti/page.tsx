@@ -1,5 +1,5 @@
 import { ZINE_NAME } from "@/lib/zine-brand";
-import { requireUser } from "@/lib/auth";
+import { requireAreaUser } from "@/lib/auth";
 import { prisma } from "@/lib/db";
 import { getSyncedUpcomingEdition, getZineDirectorySections } from "@/lib/zine";
 import { getSiteSettings } from "@/lib/settings";
@@ -8,21 +8,21 @@ import { formatDateRange } from "@/lib/week";
 import Link from "next/link";
 
 export default async function TulevaLehtiPage() {
-  const user = await requireUser("MEMBER", "SERVICE", "ADMIN");
-  const edition = await getSyncedUpcomingEdition();
+  const { user, area } = await requireAreaUser("MEMBER", "SERVICE", "ADMIN");
+  const edition = await getSyncedUpcomingEdition(area);
   const [items, settings, { services, meetings }] = await Promise.all([
     prisma.zineItem.findMany({ where: { editionId: edition.id }, orderBy: { sortOrder: "asc" } }),
     getSiteSettings(),
-    getZineDirectorySections(edition.startDate, edition.endDate),
+    getZineDirectorySections(edition),
   ]);
 
-  const html = await buildZineHtml({ edition: { ...edition, items }, settings, services, meetings, mode: "preview" });
+  const html = await buildZineHtml({ edition: { ...edition, items }, settings, area, services, meetings, mode: "preview" });
 
   return (
     <div>
       <div className="mb-4 flex items-center justify-between">
         <h1 className="text-xl font-bold">
-          Tuleva {ZINE_NAME} {formatDateRange(edition.startDate, edition.endDate)}
+          Tuleva {ZINE_NAME}, {area.name} {formatDateRange(edition.startDate, edition.endDate)}
         </h1>
         {user.role === "ADMIN" && (
           <Link href={`/admin/lehti/${edition.id}`} className="rounded bg-accent px-3 py-1.5 text-sm font-semibold text-white">

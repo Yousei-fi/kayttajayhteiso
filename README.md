@@ -1,17 +1,34 @@
-# kuntoutus.info2 — Tampereen Käyttäjäyhteisö
+# kayttajayhteiso — Käyttäjäyhteisö
 
-Live at **https://tampere.kayttajayhteiso.fi**; the community's address is
-**tampere@kayttajayhteiso.fi**. (The repository keeps its original
-`kuntoutus.info2` name — the site moved off `kuntoutus.info`, the repo didn't
-get renamed with it.)
+One national site at **https://kayttajayhteiso.fi**, with a section per area:
+Pääkaupunkiseutu (`/paakaupunkiseutu`, short form `/pks`), Tampere
+(`/tampere`) and Turku (`/turku`). This repository started as a copy of
+[kuntoutus.info2](https://github.com/Yousei-fi/kuntoutus.info2), the Tampere-only
+site, and keeps its history so `git log` and `git blame` still explain earlier
+decisions.
 
-A small publishing and information-sharing tool for Tampereen Käyttäjäyhteisö, not a service directory or case-management system. It exists to move three kinds of content into a printable weekly zine with as little manual work as possible:
+A small publishing and information-sharing tool for Käyttäjäyhteisö, not a service directory or case-management system. It exists to move three kinds of content into a printable weekly zine with as little manual work as possible:
 
 - **Service alerts** — short, occasional notices from local drug-related services ("closed Tuesday", "naloxone training Wednesday").
-- **Articles** — harm-reduction info, community news, and street experiences written by Käyttäjäyhteisö members.
+- **Articles** — harm-reduction info, community news, and street experiences written by Käyttäjäyhteisö members. Articles are national: one article runs on the national site and in every area's paper.
 - **Street round notes** — internal logs from distribution/outreach rounds, visible to members and services but never public or in the zine.
 
-Every Sunday, an admin opens the automatically-assembled draft for the coming Monday–Sunday, reorders/trims it, finalizes it, and generates a print-ready A4 PDF for the print shop.
+Every Sunday, each area's admin opens the automatically-assembled draft of their area's paper for the coming Monday–Sunday, reorders/trims it, finalizes it, and generates a print-ready A4 PDF for the print shop.
+
+## Areas
+
+Everything about a place belongs to one `Area`: alerts, community events, street rounds, the weekly paper, the service directory and NA meetings each carry an `areaId`. Articles are the only content with no area. The `Area` row's id is its URL slug, because slugs are printed in QR codes and can never change; it also holds the area's name in the three forms Finnish headings need (`name` "Turku", `nameGenitive` "Turun", `nameInessive` "Turussa"), its map centre, the nasuomi.org city names that belong to it, and its own contact details. `SiteSettings` keeps only what is national.
+
+- **Routes.** National pages sit at the root (`/`, `/artikkelit`, `/tietoa`); each area's pages are under `src/app/[area]/` (`/tampere/palvelut`, `/tampere/lehti`...). The `[area]` layout 404s for an unknown slug and for an area whose `active` flag is off, so an area stays invisible until it has a services list, an admin and a first paper. National admins switch it on at `/admin/asetukset`.
+- **Remembered area.** `src/proxy.ts` remembers the last area a visitor opened in the `kk_area` cookie, so the front page can lead with it, and sends pre-areas root paths (`/palvelut`, `/lehti`...) to that area's section (Tampere when there is none). It also redirects `/pks` to `/paakaupunkiseutu`. Slugs are listed in `src/lib/area-slugs.ts` as well, because the proxy has no database.
+- **Scoped queries.** Area pages and actions query through `areaDb(areaId)` (`src/lib/db.ts`), a Prisma client extension that adds `areaId` to every where and every create on an area model. A row from another area is simply not found, including for updates and deletes. `npm run check:area-scope` checks this against the local database.
+- **Accounts.** `User.areaId` is the home area. An `ADMIN` without one is a national admin: every area, the national settings, and a switcher for which area the dashboard and admin pages work in. An `ADMIN` with one is an area admin, limited to that area's paper, accounts, Kokemukset and settings. Members and service accounts work in their own area; a member with no area can only write (national) articles.
+- **The paper.** Each area gets its own `ZineEdition` per week (unique on area + dates): that area's alerts, events, services and NA meetings, plus the national articles. Headings come from the area's name forms, and the QR codes point at `kayttajayhteiso.fi/<area>` and the area's own submission address. PDFs go to `uploads/zines/<area>/`.
+- **Reference data.** Each area's directory data lives in `prisma/data/<area>/`, and the data scripts take `--area <slug>` (default `tampere`). `prisma/seed-reference.ts` syncs every area that has a folder, and its delete-missing-rows step only ever touches the area being synced.
+
+### Bringing the Tampere site across
+
+The `20261008120000_areas` migration is also the import. It tags every existing row as Tampere's (keeping every id, so `/palvelut/<id>` links, Kokemukset and `ZineItem.sourceId` references stay valid), copies the old contact details onto the Tampere area, makes existing members and service accounts Tampere's and existing admins national. Running `prisma migrate deploy` against a copy of the old site's database volume is the whole import; copy `uploads/` across with it so images and back-issue PDFs keep working.
 
 ## Stack
 
@@ -61,7 +78,7 @@ All demo accounts share the password printed by the seed script: `kayttajayhteis
 
 ## Accounts and roles
 
-There are exactly three roles (`User.role`): `ADMIN`, `MEMBER`, `SERVICE`. Members write articles, log street rounds and post the community's meetings and events; service accounts post alerts; admins do all of that plus user management, moderation, settings, and curating and publishing each issue. There is no public registration — an admin creates every account from `/admin/kayttajat` (name, email, role, initial password; service accounts also get a `serviceName`). This is intentional: the spec calls for maybe 50 relevant services total, so manual account creation is far simpler than building a self-serve signup/approval flow.
+There are exactly three roles (`User.role`): `ADMIN`, `MEMBER`, `SERVICE`, each optionally tied to an area (see *Areas* above). Members write articles, log street rounds and post the community's meetings and events; service accounts post alerts; admins do all of that plus user management, moderation, settings, and curating and publishing each issue. There is no public registration — an admin creates every account from `/admin/kayttajat` (name, email, role, initial password; service accounts also get a `serviceName`). This is intentional: the spec calls for maybe 50 relevant services total, so manual account creation is far simpler than building a self-serve signup/approval flow.
 
 That admin page needs an existing admin to be logged in. For the very first admin — or to recover access if every admin account is locked out — use the CLI script instead, which needs no login:
 
@@ -69,6 +86,8 @@ That admin page needs an existing admin to be logged in. For the very first admi
 npm run create-admin                    # interactive: prompts for name, email, password
 # or non-interactively (e.g. inside a running container):
 node scripts/create-admin.mjs --name "Ylläpitäjä" --email admin@example.com --password "vähintään8merkkiä"
+# an area admin instead of a national one:
+node scripts/create-admin.mjs --area turku --name "Ylläpitäjä" --email admin@example.com --password "vähintään8merkkiä"
 ```
 
 Running it with an email that already exists promotes that account to `ADMIN`, reactivates it, and resets its password to the one given — this doubles as an account-recovery tool. Against Docker/Coolify, run it via `docker exec -it <container> node scripts/create-admin.mjs` (interactive) or with `docker exec <container> node scripts/create-admin.mjs --name ... --email ... --password ...` (non-interactive).
@@ -79,7 +98,7 @@ Running it with an email that already exists promotes that account to `ADMIN`, r
 
 ## How the paper works
 
-The paper is called **Kynttilä pimeydessä** ("a candle in the darkness", after Carl Sagan) — the name, strapline and candle mark live in `src/lib/zine-brand.ts` and are shared by the printed pages and the site. Its routes are `/lehti`, `/admin/lehti` and `/dashboard/lehti`; the model names (`ZineEdition`, `ZineItem`) stay generic on purpose, so renaming the paper again wouldn't mean a migration.
+The paper is called **Kynttilä pimeydessä** ("a candle in the darkness", after Carl Sagan) — the name, strapline and candle mark live in `src/lib/zine-brand.ts` and are shared by the printed pages and the site. Its routes are `/<area>/lehti`, `/admin/lehti` and `/dashboard/lehti`; the model names (`ZineEdition`, `ZineItem`) stay generic on purpose, so renaming the paper again wouldn't mean a migration.
 
 1. Whenever a page needing "the upcoming edition" is loaded (dashboard, `/admin`, `/admin/lehti`, etc.), the app finds-or-creates a `DRAFT` `ZineEdition` for the next Monday–Sunday period and **syncs** its items into `ZineItem` rows, refreshing snapshots and dropping whatever no longer qualifies. Each content type has its own window (`src/lib/zine.ts`): non-archived **alerts** marked `includeInZine` qualify for the edition's week; **articles** that are `PUBLISHED` and marked `includeInZine` qualify for the *month* up to the edition (`articleWindowStart`), so one article can run in several consecutive issues before ageing out rather than leaving thin issues; **community events** marked `includeInZine` qualify while they are still ahead of the edition, however far ahead.
 2. An admin opens `/admin/lehti/<id>` to reorder Tiedotteet/Artikkelit items (up/down) and exclude one from this edition (exclusions stick — a re-sync won't bring an excluded item back). The Tampereen palvelut / NA-ryhmät sections aren't part of this curation — they're always the full current directory, described below. Events are exempt from the *ordering* too: they always print chronologically, since a calendar in date-jumbled order is useless on paper. Excluding one still works.
@@ -112,7 +131,7 @@ The one exception is `public/branding/` (see below) — that's a build-time asse
 
 ## Branding
 
-The real Tampereen Käyttäjäyhteisö logo lives at `public/branding/logo.jpeg`. The site's color palette (`src/app/globals.css`) and the zine's print template (`src/lib/zine-html.ts`) are both sampled from it — purple `#7137e3`, blue `#2f8fe0`, magenta `#d356ef`. To replace it with an updated file:
+The national Käyttäjäyhteisö logo lives at `public/branding/kayttajayhteiso.jpg`; the original Tampere logo (`logo.jpeg`) is kept beside it. The site's color palette (`src/app/globals.css`) and the zine's print template (`src/lib/zine-html.ts`) are both sampled from it — purple `#7137e3`, blue `#2f8fe0`, magenta `#d356ef`. To replace it with an updated file:
 
 1. Drop the new file into `public/branding/`.
 2. Set its path in `/admin/asetukset` ("Logon polku").
@@ -120,8 +139,8 @@ The real Tampereen Käyttäjäyhteisö logo lives at `public/branding/logo.jpeg`
 
 The same admin settings page (`/admin/asetukset`) also holds:
 
-- **Tietoa meistä -sivun teksti** (`aboutText`, Markdown) — the main body of the public `/tietoa` page.
-- **Sähköposti** / **Telegram-linkki** (`contactInfo` / `socialInfo`) — shown on `/tietoa` as a clickable `mailto:`/link plus a QR code for each, generated server-side (`src/lib/qrcode.ts`, the `qrcode` package) as inline SVG. No external QR image service is called, and no client JS is involved.
+- **Tietoa meistä -sivun teksti** (`SiteSettings.aboutText`, Markdown) — the main body of the national `/tietoa` page, and the paper's "who we are" page for an area that has not written its own.
+- Per area: **Alueen esittely** (`Area.aboutText`), **Sähköposti** / **Telegram-linkki** (`contactInfo` / `socialInfo`) — shown on the area's front page as a clickable `mailto:`/link plus a QR code for each, generated server-side (`src/lib/qrcode.ts`, the `qrcode` package) as inline SVG. No external QR image service is called, and no client JS is involved.
 - **Takasivun teksti** (`backPageText`, Markdown) — the short recurring harm-reduction blurb shown on both `/tietoa` and the zine's printed back cover.
 
 ### Why SiteSettings self-corrects certain fields on boot
@@ -165,7 +184,8 @@ prisma/                   schema, migrations, seed.ts (demo data), seed-referenc
 scripts/                  one-time data build steps (parse services.txt, fetch/geocode NA meetings & services)
 src/lib/                  db client, auth, markdown, zine sync/HTML/PDF, uploads, request-ip, bans, na-meetings
 src/components/           shared UI (site header, markdown editor, service map, experience form)
-src/app/                  public pages, /palvelut/*, /na-ryhmat/*, /kirjaudu, /dashboard/*, /admin/*, /uploads/[...path]
+src/app/                  national pages, [area]/* (palvelut, na-ryhmat, lehti...), /kirjaudu, /dashboard/*, /admin/*, /uploads/[...path]
+src/proxy.ts              remembered area cookie, /pks alias, pre-areas root paths
 public/branding/          logo + replacement instructions
 ```
 
@@ -176,18 +196,21 @@ public/branding/          logo + replacement instructions
 ### On Coolify
 
 1. New Resource → Docker Compose, pointed at this repo's `main` branch (it will use `docker-compose.yml` at the root).
-2. In the Coolify UI, assign the site's domain — `tampere.kayttajayhteiso.fi` — to the **`app`** service. Coolify detects the `expose: 3000` port automatically. Leave "Port Mappings" empty; don't add one. If `kuntoutus.info` is still held, attach it to the same service as a second domain (see *The old domain* below).
-3. Set the environment variable `APP_URL` to that same domain, `https://tampere.kayttajayhteiso.fi` (required — the container won't start without it). Optionally set `SEED_DEMO_DATA=true` for the *first* deploy only, then remove it.
+2. In the Coolify UI, assign the site's domain — `kayttajayhteiso.fi` — to the **`app`** service. Coolify detects the `expose: 3000` port automatically. Leave "Port Mappings" empty; don't add one. After cutover, attach `tampere.kayttajayhteiso.fi` and `kuntoutus.info` to the same service as further domains (see *The old domains* below).
+3. Set the environment variable `APP_URL` to that same domain, `https://kayttajayhteiso.fi` (required — the container won't start without it). Optionally set `SEED_DEMO_DATA=true` for the *first* deploy only, then remove it.
 4. Deploy. On boot the container runs `prisma migrate deploy` automatically, then starts the app once Coolify's healthcheck (`curl` against `/`) passes.
 
-### The old domain
+### The old domains
 
 `next.config.ts` permanently redirects (308) any request arriving with a
-`kuntoutus.info` or `www.kuntoutus.info` Host header to the same path on
-`tampere.kayttajayhteiso.fi`. This matters beyond tidiness: back issues of the
-paper were printed with QR codes pointing at the old address, and printed paper
-cannot be reissued — those codes keep working only for as long as the old domain
-resolves here.
+`kuntoutus.info`, `www.kuntoutus.info` or `tampere.kayttajayhteiso.fi` Host
+header into the national site in one hop: the bare root and `/tietoa` go to
+`/tampere`, national paths (`/artikkelit`, `/kirjaudu`, `/dashboard`, `/admin`,
+`/uploads`) keep their path, and everything else moves under `/tampere`. This
+matters beyond tidiness: back issues of the paper were printed with QR codes
+pointing at the bare root of both old addresses, and printed paper cannot be
+reissued — those codes keep working only for as long as the old domains
+resolve here.
 
 The redirect is conditioned on the Host header, so it never affects the new
 domain or local development, and costs nothing if the old domain is dropped. It

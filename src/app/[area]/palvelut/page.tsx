@@ -1,28 +1,29 @@
 import Link from "next/link";
-import { prisma } from "@/lib/db";
+import { areaDb } from "@/lib/db";
+import { areaPath, requireArea } from "@/lib/area";
 import { ServiceMap } from "@/components/service-map";
 import { formatDate } from "@/lib/week";
 import { compareCategories } from "@/lib/directory";
 
-export default async function PalvelutPage({
-  searchParams,
-}: {
-  searchParams: Promise<{ kategoria?: string }>;
-}) {
-  const { kategoria } = await searchParams;
+export default async function PalvelutPage({ params, searchParams }: PageProps<"/[area]/palvelut">) {
+  const area = await requireArea((await params).area);
+  const db = areaDb(area.id);
+  const { kategoria: rawKategoria } = await searchParams;
+  const kategoria = typeof rawKategoria === "string" ? rawKategoria : undefined;
 
   const [services, categoriesRaw, latestExperiences] = await Promise.all([
-    prisma.directoryService.findMany({
+    db.directoryService.findMany({
       where: kategoria ? { category: kategoria } : undefined,
       orderBy: [{ category: "asc" }, { name: "asc" }],
     }),
-    prisma.directoryService.findMany({
+    db.directoryService.findMany({
       distinct: ["category"],
       select: { category: true },
       orderBy: { category: "asc" },
     }),
-    prisma.experience.findMany({
-      where: { serviceId: { not: null } },
+    // Experience has no area of its own; scope it through its service.
+    db.experience.findMany({
+      where: { service: { areaId: area.id } },
       orderBy: { createdAt: "desc" },
       take: 8,
       include: { service: { select: { id: true, name: true } } },
@@ -40,22 +41,22 @@ export default async function PalvelutPage({
 
   return (
     <main className="mx-auto max-w-3xl px-4 py-8">
-      <h1 className="mb-1 text-2xl font-bold">Tampereen palvelut</h1>
+      <h1 className="mb-1 text-2xl font-bold">{area.nameGenitive} palvelut</h1>
       <p className="mb-6 text-sm text-muted">
-        Kokoamme tähän Tampereen päihde- ja mielenterveyspalveluita, järjestöjä ja vertaistukea. Tämä ei ole
+        Kokoamme tähän alueen päihde- ja mielenterveyspalveluita, järjestöjä ja vertaistukea. Tämä ei ole
         kattava hakemisto — täydennämme sitä sitä mukaa kun tietoa kertyy. Kartalla näkyvät palvelut, joiden
         osoite on tiedossa.
       </p>
 
       {pins.length > 0 && (
         <div className="mb-8">
-          <ServiceMap pins={pins} basePath="/palvelut" />
+          <ServiceMap pins={pins} basePath={areaPath(area, "/palvelut")} center={[area.mapLat, area.mapLng]} zoom={area.mapZoom} />
         </div>
       )}
 
       <div className="mb-6 flex flex-wrap gap-2 text-xs">
         <Link
-          href="/palvelut"
+          href={areaPath(area, "/palvelut")}
           className={`rounded-full border px-3 py-1 ${!kategoria ? "border-accent bg-accent text-white" : "border-line"}`}
         >
           Kaikki
@@ -63,7 +64,7 @@ export default async function PalvelutPage({
         {categories.map((c) => (
           <Link
             key={c}
-            href={`/palvelut?kategoria=${encodeURIComponent(c)}`}
+            href={areaPath(area, `/palvelut?kategoria=${encodeURIComponent(c)}`)}
             className={`rounded-full border px-3 py-1 ${kategoria === c ? "border-accent bg-accent text-white" : "border-line"}`}
           >
             {c}
@@ -75,7 +76,7 @@ export default async function PalvelutPage({
         <ul className="flex flex-col gap-2">
           {sortedServices.map((s) => (
             <li key={s.id} className="rounded border border-line bg-paper p-3">
-              <Link href={`/palvelut/${s.id}`} className="font-semibold hover:underline">
+              <Link href={areaPath(area, `/palvelut/${s.id}`)} className="font-semibold hover:underline">
                 {s.name}
               </Link>
               <p className="text-xs uppercase tracking-wide text-accent-2">{s.category}</p>
@@ -94,7 +95,7 @@ export default async function PalvelutPage({
                 <p>{e.body}</p>
                 <p className="mt-1 text-xs text-muted">
                   {e.service && (
-                    <Link href={`/palvelut/${e.service.id}`} className="text-accent-2 hover:underline">
+                    <Link href={areaPath(area, `/palvelut/${e.service.id}`)} className="text-accent-2 hover:underline">
                       {e.service.name}
                     </Link>
                   )}{" "}

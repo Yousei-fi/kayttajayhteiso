@@ -30,6 +30,11 @@ enum ZineContentType {
   EVENT
 }
 
+/// areaId is the user's home area. An ADMIN without one is a national
+/// admin (every area, plus the national settings); an ADMIN with one is an
+/// area admin. MEMBER and SERVICE accounts need an area for anything tied to
+/// a place (alerts, events, street rounds) — articles are national, so a
+/// member writes those whatever their area.
 model User {
   id           String   @id @default(cuid())
   name         String
@@ -39,6 +44,9 @@ model User {
   serviceName  String?
   active       Boolean  @default(true)
   createdAt    DateTime @default(now())
+  areaId       String?
+
+  area         Area?    @relation(fields: [areaId], references: [id])
 
   alerts       Alert[]
   articles     Article[]
@@ -60,6 +68,7 @@ model Session {
 
 model Alert {
   id            String    @id @default(cuid())
+  areaId        String
   serviceUserId String
   title         String
   body          String
@@ -70,11 +79,15 @@ model Alert {
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
 
+  area    Area @relation(fields: [areaId], references: [id])
   service User @relation(fields: [serviceUserId], references: [id])
 
+  @@index([areaId])
   @@index([serviceUserId])
 }
 
+/// National: an article has no area. It is listed at /artikkelit and runs in
+/// every area's paper.
 model Article {
   id            String        @id @default(cuid())
   authorId      String
@@ -98,6 +111,7 @@ model Article {
 /// community's own calendar, so it is authored by MEMBER/ADMIN accounts.
 model CommunityEvent {
   id            String    @id @default(cuid())
+  areaId        String
   authorId      String
   title         String
   startsAt      DateTime
@@ -109,29 +123,38 @@ model CommunityEvent {
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
 
+  area   Area @relation(fields: [areaId], references: [id])
   author User @relation(fields: [authorId], references: [id])
 
+  @@index([areaId])
   @@index([authorId])
   @@index([startsAt])
 }
 
+/// `place` is the free-text part of town the round covered ("Keskusta,
+/// Hervanta"); it was called `area` until areas became their own model.
 model StreetRound {
   id           String   @id @default(cuid())
+  areaId       String
   authorId     String
   date         DateTime
   participants String?
-  area         String?
+  place        String?
   notes        String
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 
+  area   Area @relation(fields: [areaId], references: [id])
   author User @relation(fields: [authorId], references: [id])
 
+  @@index([areaId])
   @@index([authorId])
 }
 
+/// One paper per area per week.
 model ZineEdition {
   id          String        @id @default(cuid())
+  areaId      String
   startDate   DateTime
   endDate     DateTime
   status      EditionStatus @default(DRAFT)
@@ -140,9 +163,10 @@ model ZineEdition {
   pdfPath     String?
   coverNote   String?
 
+  area  Area       @relation(fields: [areaId], references: [id])
   items ZineItem[]
 
-  @@unique([startDate, endDate])
+  @@unique([areaId, startDate, endDate])
 }
 
 model ZineItem {
@@ -164,32 +188,73 @@ model ZineItem {
   @@index([editionId])
 }
 
+/// The national community's settings: one row. Anything that differs by
+/// place (contact addresses, Telegram group, the area's own about text) is
+/// on Area instead.
 model SiteSettings {
-  id              Int    @id @default(1)
-  orgName         String @default("Tampereen Käyttäjäyhteisö")
-  description     String @default("")
+  id            Int    @id @default(1)
+  orgName       String @default("Käyttäjäyhteisö")
+  description   String @default("")
   /// Longer Markdown body for the public /tietoa page specifically —
   /// kept separate from `description` (the short blurb also printed on
   /// the zine's back cover), so this can be as long as needed.
-  aboutText       String @default("")
-  contactInfo     String @default("")
-  socialInfo      String @default("")
-  backPageText    String @default("")
-  logoPath        String @default("/branding/logo.jpeg")
-  /// Shown on the zine's final page ("write for the next issue"), with a
-  /// mailto: QR code.
-  submissionEmail String @default("tampere@kayttajayhteiso.fi")
-  /// The public site's own URL, shown (with a QR code) in the zine's
-  /// Kokemukset sections as "browse or add your own experience here".
-  publicSiteUrl   String @default("https://tampere.kayttajayhteiso.fi")
+  aboutText     String @default("")
+  backPageText  String @default("")
+  logoPath      String @default("/branding/kayttajayhteiso.jpg")
+  /// The site's root URL. An area's own address is this plus /<area>, and
+  /// that is what the area's paper prints (with a QR code).
+  publicSiteUrl String @default("https://kayttajayhteiso.fi")
 }
 
-/// A directory entry for the public "Tampereen palvelut" service map,
+/// A place the community operates in, with its own section of the site
+/// (/<id>) and its own weekly paper. The id is the URL slug itself
+/// ("tampere"), since it is printed in QR codes and can never change.
+///
+/// The name comes in the three forms Finnish headings need, so no page has
+/// to inflect a place name in code: "Tampereen palvelut" (genitive),
+/// "NA-ryhmiä Tampereella" (inessive).
+model Area {
+  id              String  @id
+  name            String
+  nameGenitive    String
+  nameInessive    String
+  /// Comma-separated `kaupunki` values in the nasuomi.org meeting API that
+  /// belong to this area, e.g. "Helsinki,Espoo,Vantaa,Kauniainen".
+  naCityNames     String  @default("")
+  mapLat          Float
+  mapLng          Float
+  mapZoom         Int     @default(12)
+  /// An inactive area 404s publicly; it stays off until it has a services
+  /// list, an admin and a first paper.
+  active          Boolean @default(false)
+  sortOrder       Int     @default(0)
+  /// Markdown shown at the top of the area's front page, under its name.
+  aboutText       String  @default("")
+  /// Area email: mailto link and QR code on /tietoa and the area page.
+  contactInfo     String  @default("")
+  /// Area Telegram link, with a QR code.
+  socialInfo      String  @default("")
+  /// Shown on the last page of this area's paper ("write for the next
+  /// issue"), with a mailto: QR code.
+  submissionEmail String  @default("")
+  createdAt       DateTime @default(now())
+
+  users        User[]
+  alerts       Alert[]
+  events       CommunityEvent[]
+  streetRounds StreetRound[]
+  editions     ZineEdition[]
+  services     DirectoryService[]
+  naMeetings   NaMeeting[]
+}
+
+/// A directory entry for an area's public service map ("Tampereen palvelut"),
 /// sourced from a hand-maintained list of local services (see
 /// prisma/data/). Not the same thing as a service Account/Alert — this is
 /// reference info anyone can browse, with no login involved.
 model DirectoryService {
   id          String   @id @default(cuid())
+  areaId      String
   category    String
   name        String
   address     String?
@@ -199,17 +264,19 @@ model DirectoryService {
   lng         Float?
   createdAt   DateTime @default(now())
 
+  area        Area         @relation(fields: [areaId], references: [id])
   experiences Experience[]
 
-  @@unique([category, name])
+  @@unique([areaId, category, name])
 }
 
-/// A weekly-recurring Tampere NA (Narcotics Anonymous) meeting, synced from
+/// A weekly-recurring NA (Narcotics Anonymous) meeting in one area, synced from
 /// NA Suomi's public meeting API (see scripts/fetch-na-meetings.mjs).
 /// weekday/weekdayIndex/time describe the recurring weekly slot, not a
 /// single date — there is no per-occurrence row.
 model NaMeeting {
   id              String    @id @default(cuid())
+  areaId          String
   sourceId        Int       @unique
   name            String
   weekday         String
@@ -229,12 +296,15 @@ model NaMeeting {
   sourceUrl       String?
   createdAt       DateTime  @default(now())
 
+  area        Area         @relation(fields: [areaId], references: [id])
   experiences Experience[]
 
+  @@index([areaId])
   @@index([weekdayIndex])
 }
 
 /// An anonymous short public note ("Kokemus") about a DirectoryService.
+/// Has no area of its own: it takes its service's.
 /// No account, no author field by design; ipAddress is recorded
 /// (disclosed to posters) purely so admins can moderate abuse via
 /// BannedIp, and is never shown to other visitors.

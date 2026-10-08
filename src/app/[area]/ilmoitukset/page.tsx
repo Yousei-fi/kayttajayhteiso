@@ -1,9 +1,11 @@
-import { prisma } from "@/lib/db";
+import { areaDb } from "@/lib/db";
+import { requireArea } from "@/lib/area";
 import { formatDate } from "@/lib/week";
 
-export default async function JulkisetIlmoituksetPage() {
+export default async function JulkisetIlmoituksetPage({ params }: PageProps<"/[area]/ilmoitukset">) {
+  const area = await requireArea((await params).area);
   const now = new Date();
-  const alerts = await prisma.alert.findMany({
+  const alerts = await areaDb(area.id).alert.findMany({
     where: { archived: false, OR: [{ validUntil: null }, { validUntil: { gte: now } }] },
     orderBy: { createdAt: "desc" },
     include: { service: true },
@@ -13,7 +15,7 @@ export default async function JulkisetIlmoituksetPage() {
     <main className="mx-auto max-w-2xl px-4 py-8">
       <h1 className="mb-2 text-2xl font-bold">Palveluiden ilmoitukset</h1>
       <p className="mb-6 text-sm text-muted">
-        Tampereen päihde- ja matalan kynnyksen palveluiden lyhyet, ajankohtaiset ilmoitukset.
+        {area.nameGenitive} päihde- ja matalan kynnyksen palveluiden lyhyet, ajankohtaiset ilmoitukset.
       </p>
       <ul className="flex flex-col gap-3">
         {alerts.map((a) => (

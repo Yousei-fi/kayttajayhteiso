@@ -1,15 +1,15 @@
+import Link from "next/link";
 import { getSiteSettings } from "@/lib/settings";
+import { areaPath, getActiveAreas } from "@/lib/area";
 import { renderMarkdown } from "@/lib/markdown";
-import { qrCodeSvg } from "@/lib/qrcode";
-import { MailIcon, TelegramIcon } from "@/components/icons";
+import { MailIcon } from "@/components/icons";
 
+/**
+ * About the national community. Each area's own contact details, with QR
+ * codes, are on its front page; this lists where to find them.
+ */
 export default async function TietoaPage() {
-  const settings = await getSiteSettings();
-
-  const [mailQr, telegramQr] = await Promise.all([
-    settings.contactInfo ? qrCodeSvg(`mailto:${settings.contactInfo}`) : null,
-    settings.socialInfo ? qrCodeSvg(settings.socialInfo) : null,
-  ]);
+  const [settings, areas] = await Promise.all([getSiteSettings(), getActiveAreas()]);
 
   return (
     <main className="mx-auto max-w-2xl px-4 py-8">
@@ -28,35 +28,24 @@ export default async function TietoaPage() {
         />
       )}
 
-      {(settings.contactInfo || settings.socialInfo) && (
-        <div className="mt-10 grid gap-4 sm:grid-cols-2">
-          {settings.contactInfo && (
-            <div className="flex flex-col items-center gap-3 rounded border border-line bg-paper p-4 text-center">
-              {mailQr && <div className="h-28 w-28 shrink-0" dangerouslySetInnerHTML={{ __html: mailQr }} />}
-              <div className="flex items-center gap-2 text-sm font-semibold">
-                <MailIcon className="h-4 w-4 shrink-0 text-accent-2" />
-                <a href={`mailto:${settings.contactInfo}`} className="break-words hover:underline">
-                  {settings.contactInfo}
+      <section className="mt-10">
+        <h2 className="mb-3 text-lg font-bold">Alueet</h2>
+        <ul className="flex flex-col gap-2">
+          {areas.map((area) => (
+            <li key={area.id} className="flex flex-wrap items-center justify-between gap-2 rounded border border-line bg-paper p-3">
+              <Link href={areaPath(area)} className="font-semibold hover:underline">
+                {area.name}
+              </Link>
+              {area.contactInfo && (
+                <a href={`mailto:${area.contactInfo}`} className="flex items-center gap-2 text-sm hover:underline">
+                  <MailIcon className="h-4 w-4 shrink-0 text-accent-2" />
+                  {area.contactInfo}
                 </a>
-              </div>
-              <p className="text-xs text-muted">Skannaa lähettääksesi sähköpostia</p>
-            </div>
-          )}
-
-          {settings.socialInfo && (
-            <div className="flex flex-col items-center gap-3 rounded border border-line bg-paper p-4 text-center">
-              {telegramQr && <div className="h-28 w-28 shrink-0" dangerouslySetInnerHTML={{ __html: telegramQr }} />}
-              <div className="flex items-center gap-2 text-sm font-semibold">
-                <TelegramIcon className="h-4 w-4 shrink-0 text-accent-2" />
-                <a href={settings.socialInfo} target="_blank" rel="noreferrer" className="break-words hover:underline">
-                  {settings.socialInfo}
-                </a>
-              </div>
-              <p className="text-xs text-muted">Skannaa liittyäksesi Telegramissa</p>
-            </div>
-          )}
-        </div>
-      )}
+              )}
+            </li>
+          ))}
+        </ul>
+      </section>
     </main>
   );
 }

@@ -24,6 +24,7 @@ async function upsertUser(data: {
   name: string;
   role: "ADMIN" | "MEMBER" | "SERVICE";
   serviceName?: string;
+  areaId?: string;
 }) {
   const passwordHash = await bcrypt.hash(DEMO_PASSWORD, 12);
   return prisma.user.upsert({
@@ -49,6 +50,10 @@ const DEMO_ID = {
 } as const;
 
 const DEMO_IDS = Object.values(DEMO_ID);
+
+/** Demo content is Tampere's, the area these services are in. The demo admin
+ * is national, so it can try every area. */
+const DEMO_AREA = "tampere";
 
 /**
  * Deletes "[DEMO]" alerts, articles and street rounds that this run did not
@@ -84,6 +89,7 @@ async function main() {
     email: "jasen@kayttajayhteiso.fi",
     name: "[DEMO] Jäsen Meikäläinen",
     role: "MEMBER",
+    areaId: DEMO_AREA,
   });
 
   const serviceA = await upsertUser({
@@ -91,6 +97,7 @@ async function main() {
     name: "[DEMO] Nervi yhteyshenkilö",
     role: "SERVICE",
     serviceName: "[DEMO] Nervi – Terveysneuvonta",
+    areaId: DEMO_AREA,
   });
 
   const serviceB = await upsertUser({
@@ -98,6 +105,7 @@ async function main() {
     name: "[DEMO] Osviitta yhteyshenkilö",
     role: "SERVICE",
     serviceName: "[DEMO] Kriisikeskus Osviitta",
+    areaId: DEMO_AREA,
   });
 
   // SiteSettings (real org info, logo, about text) is owned by
@@ -107,6 +115,7 @@ async function main() {
   const in5days = new Date(now.getTime() + 5 * 24 * 60 * 60 * 1000);
 
   const alert1Data = {
+    areaId: DEMO_AREA,
     serviceUserId: serviceA.id,
     title: "[DEMO] Poikkeusaukiolo",
     body: "Suljemme poikkeuksellisesti klo 16 torstaina. Kiireellisissä asioissa ota yhteyttä puhelimitse.",
@@ -120,6 +129,7 @@ async function main() {
   });
 
   const alert2Data = {
+    areaId: DEMO_AREA,
     serviceUserId: serviceA.id,
     title: "[DEMO] Naloksonikoulutus keskiviikkona",
     body: "Ilmainen naloksonikoulutus keskiviikkona klo 14. Ei ennakkoilmoittautumista.",
@@ -132,6 +142,7 @@ async function main() {
   });
 
   const alert3Data = {
+    areaId: DEMO_AREA,
     serviceUserId: serviceB.id,
     title: "[DEMO] Puhelinnumero tilapäisesti pois käytöstä",
     body: "Puhelinlinjamme on tilapäisesti pois käytöstä huoltotöiden vuoksi. Käy paikan päällä tai lähetä sähköpostia.",
@@ -159,7 +170,7 @@ async function main() {
   const article2Data = {
     authorId: member.id,
     title: "[DEMO] Miksi vertaistuki toimii",
-    body: "Vertaistuki perustuu jaettuun kokemukseen. Tässä artikkelissa kerromme, miksi se on tärkeä osa Tampereen Käyttäjäyhteisön toimintaa.\n",
+    body: "Vertaistuki perustuu jaettuun kokemukseen. Tässä artikkelissa kerromme, miksi se on tärkeä osa Käyttäjäyhteisön toimintaa.\n",
     status: "PUBLISHED" as const,
     includeInZine: false,
   };
@@ -170,10 +181,11 @@ async function main() {
   });
 
   const round1Data = {
+    areaId: DEMO_AREA,
     authorId: member.id,
     date: new Date(now.getTime() - 2 * 24 * 60 * 60 * 1000),
     participants: "2 jäsentä",
-    area: "Keskusta / Tullintori",
+    place: "Keskusta / Tullintori",
     notes:
       "Jaettiin noin 35 lehteä. Useampi mainitsi pitkät jonot eräässä palvelussa. Kaksi kysyi haavanhoidosta. Kiinnostusta naloksonikoulutukseen.",
   };
@@ -184,9 +196,10 @@ async function main() {
   });
 
   const round2Data = {
+    areaId: DEMO_AREA,
     authorId: member.id,
     date: new Date(now.getTime() - 5 * 24 * 60 * 60 * 1000),
-    area: "Hervanta",
+    place: "Hervanta",
     notes: "Rauhallinen kierros. Kysyttiin liikkuvan terveysneuvonnan seuraavasta ajankohdasta.",
   };
   await prisma.streetRound.upsert({
@@ -203,9 +216,10 @@ async function main() {
   const weekAgoEnd = new Date(weekAgoStart.getTime() + 6 * 24 * 60 * 60 * 1000);
 
   const sampleEdition = await prisma.zineEdition.upsert({
-    where: { startDate_endDate: { startDate: weekAgoStart, endDate: weekAgoEnd } },
+    where: { areaId_startDate_endDate: { areaId: DEMO_AREA, startDate: weekAgoStart, endDate: weekAgoEnd } },
     update: {},
     create: {
+      areaId: DEMO_AREA,
       startDate: weekAgoStart,
       endDate: weekAgoEnd,
       status: "FINAL",

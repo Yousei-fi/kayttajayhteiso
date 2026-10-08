@@ -1,7 +1,6 @@
 "use server";
 
-import { prisma } from "@/lib/db";
-import { requireUser } from "@/lib/auth";
+import { requireAreaUser } from "@/lib/auth";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 
@@ -11,7 +10,7 @@ function parseOptionalDate(value: FormDataEntryValue | null): Date | null {
 }
 
 export async function createAlert(formData: FormData): Promise<void> {
-  const user = await requireUser("SERVICE", "ADMIN");
+  const { user, area, db } = await requireAreaUser("SERVICE", "ADMIN");
 
   const title = String(formData.get("title") ?? "").trim();
   const body = String(formData.get("body") ?? "").trim();
@@ -22,26 +21,31 @@ export async function createAlert(formData: FormData): Promise<void> {
     throw new Error("Otsikko ja teksti vaaditaan.");
   }
 
-  await prisma.alert.create({
-    data: { serviceUserId: user.id, title, body, validFrom, validUntil, includeInZine: true },
+  await db.alert.create({
+    data: { areaId: area.id, serviceUserId: user.id, title, body, validFrom, validUntil, includeInZine: true },
   });
 
-  revalidatePath("/dashboard/ilmoitukset");
-  revalidatePath("/ilmoitukset");
+  revalidateAlertPages(area.id);
   redirect("/dashboard/ilmoitukset");
 }
 
+function revalidateAlertPages(areaId: string): void {
+  revalidatePath("/dashboard/ilmoitukset");
+  revalidatePath(`/${areaId}/ilmoitukset`);
+  revalidatePath(`/${areaId}`);
+}
+
 async function assertCanEdit(alertId: string) {
-  const user = await requireUser("SERVICE", "ADMIN");
-  const alert = await prisma.alert.findUniqueOrThrow({ where: { id: alertId } });
+  const { user, area, db } = await requireAreaUser("SERVICE", "ADMIN");
+  const alert = await db.alert.findUniqueOrThrow({ where: { id: alertId } });
   if (user.role !== "ADMIN" && alert.serviceUserId !== user.id) {
     throw new Error("Ei oikeutta muokata tätä ilmoitusta.");
   }
-  return { user, alert };
+  return { user, area, db, alert };
 }
 
 export async function updateAlert(alertId: string, formData: FormData): Promise<void> {
-  const { alert } = await assertCanEdit(alertId);
+  const { db, alert } = await assertCanEdit(alertId);
 
   const title = String(formData.get("title") ?? "").trim();
   const body = String(formData.get("body") ?? "").trim();
@@ -53,34 +57,32 @@ export async function updateAlert(alertId: string, formData: FormData): Promise<
     throw new Error("Otsikko ja teksti vaaditaan.");
   }
 
-  await prisma.alert.update({
+  await db.alert.update({
     where: { id: alert.id },
     data: { title, body, validFrom, validUntil, includeInZine },
   });
 
-  revalidatePath("/dashboard/ilmoitukset");
-  revalidatePath("/ilmoitukset");
+  revalidateAlertPages(alert.areaId);
 }
 
 export async function archiveAlert(alertId: string): Promise<void> {
-  const { alert } = await assertCanEdit(alertId);
-  await prisma.alert.update({ where: { id: alert.id }, data: { archived: true } });
-  revalidatePath("/dashboard/ilmoitukset");
-  revalidatePath("/ilmoitukset");
+  const { db, alert } = await assertCanEdit(alertId);
+  await db.alert.update({ where: { id: alert.id }, data: { archived: true } });
+  revalidateAlertPages(alert.areaId);
 }
 
 export async function deleteAlert(alertId: string): Promise<void> {
-  const { alert } = await assertCanEdit(alertId);
-  await prisma.alert.delete({ where: { id: alert.id } });
-  revalidatePath("/dashboard/ilmoitukset");
-  revalidatePath("/ilmoitukset");
+  const { db, alert } = await assertCanEdit(alertId);
+  await db.alert.delete({ where: { id: alert.id } });
+  revalidateAlertPages(alert.areaId);
   redirect("/dashboard/ilmoitukset");
 }
 
 export async function duplicateAlert(alertId: string): Promise<void> {
-  const { user, alert } = await assertCanEdit(alertId);
-  const copy = await prisma.alert.create({
+  const { user, db, alert } = await assertCanEdit(alertId);
+  const copy = await db.alert.create({
     data: {
+      areaId: alert.areaId,
       serviceUserId: user.id,
       title: alert.title,
       body: alert.body,

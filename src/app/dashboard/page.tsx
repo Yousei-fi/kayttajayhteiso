@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { getCurrentUser } from "@/lib/auth";
-import { prisma } from "@/lib/db";
+import { areaDb } from "@/lib/db";
+import { getWorkingArea } from "@/lib/area";
 import { getSyncedUpcomingEdition } from "@/lib/zine";
 import { formatDate, formatDateRange } from "@/lib/week";
 import { redirect } from "next/navigation";
@@ -9,16 +10,20 @@ export default async function DashboardPage() {
   const user = await getCurrentUser();
   if (!user) redirect("/kirjaudu");
 
-  const edition = await getSyncedUpcomingEdition();
+  const area = await getWorkingArea(user);
+  if (!area) return <NoAreaDashboard />;
+  const db = areaDb(area.id);
+
+  const edition = await getSyncedUpcomingEdition(area);
 
   const [latestAlerts, latestRounds] = await Promise.all([
-    prisma.alert.findMany({
+    db.alert.findMany({
       where: { archived: false },
       orderBy: { createdAt: "desc" },
       take: 5,
       include: { service: true },
     }),
-    prisma.streetRound.findMany({
+    db.streetRound.findMany({
       orderBy: { date: "desc" },
       take: 5,
       include: { author: true },
@@ -42,7 +47,7 @@ export default async function DashboardPage() {
       )}
 
       <section className="rounded border border-line bg-paper p-4">
-        <p className="text-xs uppercase tracking-wide text-muted">Tuleva lehti</p>
+        <p className="text-xs uppercase tracking-wide text-muted">Tuleva lehti · {area.name}</p>
         <p className="text-xl font-bold">{formatDateRange(edition.startDate, edition.endDate)}</p>
         <Link
           href="/dashboard/lehti"
@@ -93,13 +98,29 @@ export default async function DashboardPage() {
           {latestRounds.map((r) => (
             <li key={r.id} className="rounded border border-line bg-paper p-3">
               <Link href={`/dashboard/kierrokset/${r.id}`} className="font-semibold hover:underline">
-                {formatDate(r.date)} {r.area ? `– ${r.area}` : ""}
+                {formatDate(r.date)} {r.place ? `– ${r.place}` : ""}
               </Link>
               <p className="text-xs text-muted">{r.author.name}</p>
             </li>
           ))}
         </ul>
       </section>
+    </div>
+  );
+}
+
+/**
+ * A member with no home area writes national articles only; everything tied
+ * to a place needs an area, which an admin sets at /admin/kayttajat.
+ */
+function NoAreaDashboard() {
+  return (
+    <div className="flex flex-col gap-6">
+      <BigButton href="/dashboard/artikkelit/uusi" label="Kirjoita artikkeli" />
+      <p className="text-sm text-muted">
+        Tilillesi ei ole vielä merkitty aluetta. Voit kirjoittaa artikkeleita, jotka näkyvät kaikilla alueilla.
+        Pyydä ylläpitäjää lisäämään alueesi, niin näet myös sen tapahtumat, katukierrokset ja tulevan lehden.
+      </p>
     </div>
   );
 }

@@ -1,19 +1,18 @@
 import Link from "next/link";
-import { prisma } from "@/lib/db";
+import { areaDb } from "@/lib/db";
+import { areaPath, requireArea } from "@/lib/area";
 import { ServiceMap } from "@/components/service-map";
 import { formatDate } from "@/lib/week";
-import { NA_INTRO_PARAGRAPHS, getUpcomingMeetings, isOnBreak } from "@/lib/na-meetings";
+import { naIntroParagraphs, getUpcomingMeetings, isOnBreak } from "@/lib/na-meetings";
 
 const WEEKDAYS = ["Maanantai", "Tiistai", "Keskiviikko", "Torstai", "Perjantai", "Lauantai", "Sunnuntai"];
 
-export default async function NaRyhmatPage({
-  searchParams,
-}: {
-  searchParams: Promise<{ viikonpaiva?: string }>;
-}) {
-  const { viikonpaiva } = await searchParams;
+export default async function NaRyhmatPage({ params, searchParams }: PageProps<"/[area]/na-ryhmat">) {
+  const area = await requireArea((await params).area);
+  const { viikonpaiva: rawViikonpaiva } = await searchParams;
+  const viikonpaiva = typeof rawViikonpaiva === "string" ? rawViikonpaiva : undefined;
 
-  const meetings = await prisma.naMeeting.findMany({
+  const meetings = await areaDb(area.id).naMeeting.findMany({
     where: { cancelled: false },
     orderBy: [{ weekdayIndex: "asc" }, { time: "asc" }],
   });
@@ -32,10 +31,10 @@ export default async function NaRyhmatPage({
 
   return (
     <main className="mx-auto max-w-3xl px-4 py-8">
-      <h1 className="mb-4 text-2xl font-bold">Tampereen NA-ryhmät</h1>
+      <h1 className="mb-4 text-2xl font-bold">{area.nameGenitive} NA-ryhmät</h1>
 
       <div className="mb-8 rounded-lg border border-line bg-paper p-4 text-sm leading-relaxed">
-        {NA_INTRO_PARAGRAPHS.map((para) => (
+        {naIntroParagraphs(area).map((para) => (
           <p key={para} className="mb-2 last:mb-0">
             {para}
           </p>
@@ -48,7 +47,7 @@ export default async function NaRyhmatPage({
           {upcoming.map((m) => (
             <Link
               key={m.id}
-              href={`/na-ryhmat/${m.id}`}
+              href={areaPath(area, `/na-ryhmat/${m.id}`)}
               className="rounded border border-accent-2 bg-paper p-3 hover:border-accent"
             >
               <p className="text-xs uppercase tracking-wide text-accent-2">
@@ -64,13 +63,13 @@ export default async function NaRyhmatPage({
 
       {pins.length > 0 && (
         <div className="mb-8">
-          <ServiceMap pins={pins} basePath="/na-ryhmat" />
+          <ServiceMap pins={pins} basePath={areaPath(area, "/na-ryhmat")} center={[area.mapLat, area.mapLng]} zoom={area.mapZoom} />
         </div>
       )}
 
       <div className="mb-6 flex flex-wrap gap-2 text-xs">
         <Link
-          href="/na-ryhmat"
+          href={areaPath(area, "/na-ryhmat")}
           className={`rounded-full border px-3 py-1 ${!viikonpaiva ? "border-accent bg-accent text-white" : "border-line"}`}
         >
           Kaikki
@@ -78,7 +77,7 @@ export default async function NaRyhmatPage({
         {WEEKDAYS.map((w) => (
           <Link
             key={w}
-            href={`/na-ryhmat?viikonpaiva=${encodeURIComponent(w)}`}
+            href={areaPath(area, `/na-ryhmat?viikonpaiva=${encodeURIComponent(w)}`)}
             className={`rounded-full border px-3 py-1 ${viikonpaiva === w ? "border-accent bg-accent text-white" : "border-line"}`}
           >
             {w}
@@ -89,7 +88,7 @@ export default async function NaRyhmatPage({
       <ul className="flex flex-col gap-2">
         {filtered.map((m) => (
           <li key={m.id} className="rounded border border-line bg-paper p-3">
-            <Link href={`/na-ryhmat/${m.id}`} className="font-semibold hover:underline">
+            <Link href={areaPath(area, `/na-ryhmat/${m.id}`)} className="font-semibold hover:underline">
               {m.name}
             </Link>
             <p className="text-xs uppercase tracking-wide text-accent-2">

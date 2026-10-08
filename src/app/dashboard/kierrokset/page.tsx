@@ -1,12 +1,11 @@
 import Link from "next/link";
-import { prisma } from "@/lib/db";
-import { requireUser } from "@/lib/auth";
+import { requireAreaUser } from "@/lib/auth";
 import { formatDate } from "@/lib/week";
 
 export default async function KierroksetPage() {
-  const user = await requireUser("MEMBER", "ADMIN", "SERVICE");
+  const { user, db } = await requireAreaUser("MEMBER", "ADMIN", "SERVICE");
 
-  const rounds = await prisma.streetRound.findMany({
+  const rounds = await db.streetRound.findMany({
     orderBy: { date: "desc" },
     include: { author: true },
   });
@@ -33,7 +32,7 @@ export default async function KierroksetPage() {
         {rounds.map((r) => (
           <li key={r.id} className="rounded border border-line bg-paper p-3">
             <Link href={`/dashboard/kierrokset/${r.id}`} className="font-semibold hover:underline">
-              {formatDate(r.date)} {r.area ? `– ${r.area}` : ""}
+              {formatDate(r.date)} {r.place ? `– ${r.place}` : ""}
             </Link>
             <p className="text-xs text-muted">{r.author.name}</p>
             <p className="mt-1 line-clamp-2 text-sm">{r.notes}</p>

@@ -1,16 +1,14 @@
 /**
- * One-time step: geocodes every address in prisma/data/services.json
+ * One-time step: geocodes every address in prisma/data/<area>/services.json
  * against OpenStreetMap's Nominatim API and writes lat/lng back in place.
  * Respects Nominatim's usage policy: max ~1 request/sec, a real
  * identifying User-Agent, and results are cached in the JSON file itself
  * so this never needs to run again unless an address changes.
  */
 import { readFileSync, writeFileSync } from "fs";
-import path from "path";
-import { fileURLToPath } from "url";
+import { areaDataFile } from "./area-arg.mjs";
 
-const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const FILE = path.join(__dirname, "../prisma/data/services.json");
+const FILE = areaDataFile("services.json");
 
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 

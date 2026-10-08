@@ -1,19 +1,21 @@
-import { prisma } from "@/lib/db";
+import { areaDb } from "@/lib/db";
+import { requireArea } from "@/lib/area";
 import { formatDateTime, formatTime } from "@/lib/week";
 
-export default async function JulkisetTapahtumatPage() {
+export default async function JulkisetTapahtumatPage({ params }: PageProps<"/[area]/tapahtumat">) {
+  const area = await requireArea((await params).area);
   const now = new Date();
 
   // Anything that has not finished yet is still worth showing: an event that
   // started this morning and runs all day should not vanish at noon.
-  const events = await prisma.communityEvent.findMany({
+  const events = await areaDb(area.id).communityEvent.findMany({
     where: { OR: [{ endsAt: { gte: now } }, { endsAt: null, startsAt: { gte: now } }] },
     orderBy: { startsAt: "asc" },
   });
 
   return (
     <main className="mx-auto max-w-2xl px-4 py-8">
-      <h1 className="mb-1 text-2xl font-bold">Käyttäjäyhteisön kokoukset ja tapahtumat</h1>
+      <h1 className="mb-1 text-2xl font-bold">{area.nameGenitive} Käyttäjäyhteisön kokoukset ja tapahtumat</h1>
       <p className="mb-6 text-sm text-muted">
         Yhteisön omat kokoukset ja tapahtumat. Kaikki ovat tervetulleita, ellei kuvauksessa toisin sanota.
       </p>

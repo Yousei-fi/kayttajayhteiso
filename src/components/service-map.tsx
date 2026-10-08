@@ -11,11 +11,20 @@ export type MapPin = {
   subtitle: string;
 };
 
-const TAMPERE_CENTER: [number, number] = [61.4978, 23.761];
-
-/** Renders pins on a Leaflet/OpenStreetMap map; clicking one opens a popup
- * with a link to `${basePath}/${pin.id}` for full details. */
-export function ServiceMap({ pins, basePath }: { pins: MapPin[]; basePath: string }) {
+/** Renders pins on a Leaflet/OpenStreetMap map, starting at the area's own
+ * centre and zoom; clicking a pin opens a popup with a link to
+ * `${basePath}/${pin.id}` for full details. */
+export function ServiceMap({
+  pins,
+  basePath,
+  center,
+  zoom,
+}: {
+  pins: MapPin[];
+  basePath: string;
+  center: [number, number];
+  zoom: number;
+}) {
   const containerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -30,8 +39,8 @@ export function ServiceMap({ pins, basePath }: { pins: MapPin[]; basePath: strin
       if (cancelled || !containerRef.current) return;
 
       map = L.map(containerRef.current, {
-        center: TAMPERE_CENTER,
-        zoom: 12,
+        center,
+        zoom,
         scrollWheelZoom: false,
       });
 
@@ -61,7 +70,7 @@ export function ServiceMap({ pins, basePath }: { pins: MapPin[]; basePath: strin
       cancelled = true;
       map?.remove();
     };
-  }, [pins, basePath]);
+  }, [pins, basePath, center, zoom]);
 
   return (
     <>

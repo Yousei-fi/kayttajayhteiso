@@ -1,5 +1,4 @@
-import { prisma } from "@/lib/db";
-import { requireUser } from "@/lib/auth";
+import { requireAreaUser } from "@/lib/auth";
 import { updateAlert, deleteAlert, archiveAlert, duplicateAlert } from "../actions";
 import { notFound } from "next/navigation";
 
@@ -13,8 +12,8 @@ export default async function MuokkaaIlmoitustaPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  const user = await requireUser("SERVICE", "ADMIN");
-  const alert = await prisma.alert.findUnique({ where: { id } });
+  const { user, db } = await requireAreaUser("SERVICE", "ADMIN");
+  const alert = await db.alert.findUnique({ where: { id } });
   if (!alert) notFound();
   if (user.role !== "ADMIN" && alert.serviceUserId !== user.id) {
     return <p className="text-sm text-danger">Ei oikeutta muokata tätä ilmoitusta.</p>;

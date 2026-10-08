@@ -1,19 +1,17 @@
 /**
  * One-time build step (not run at app startup or in seed.ts): parses
- * prisma/data/services-source.txt into structured entries and writes
- * prisma/data/services.json, which prisma/seed.ts reads directly. Kept
+ * prisma/data/<area>/services-source.txt into structured entries and writes
+ * prisma/data/<area>/services.json, which prisma/seed.ts reads directly. Kept
  * separate from seeding because it also geocodes addresses against the
  * Nominatim API, which is slow (rate-limited to ~1 req/sec) and has no
  * reason to run more than once — re-run manually only if the source text
  * or an address changes.
  */
 import { readFileSync, writeFileSync } from "fs";
-import path from "path";
-import { fileURLToPath } from "url";
+import { areaDataFile } from "./area-arg.mjs";
 
-const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const SRC = path.join(__dirname, "../prisma/data/services-source.txt");
-const OUT = path.join(__dirname, "../prisma/data/services.json");
+const SRC = areaDataFile("services-source.txt");
+const OUT = areaDataFile("services.json");
 
 const raw = readFileSync(SRC, "utf-8");
 const lines = raw.split("\n").map((l) => l.replace(/\r$/, ""));
