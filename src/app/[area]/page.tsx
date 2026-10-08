@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { areaDb } from "@/lib/db";
-import { areaOrgName, areaPath, requireArea } from "@/lib/area";
+import { areaOrgName, areaPath, meetingAddress, requireArea } from "@/lib/area";
 import { formatDateRange, formatDateTime } from "@/lib/week";
 import { getUpcomingMeetings } from "@/lib/na-meetings";
 import { renderMarkdown } from "@/lib/markdown";
@@ -113,7 +113,7 @@ export default async function AreaHomePage({ params }: PageProps<"/[area]">) {
                 {m.weekday} klo {m.time}
               </p>
               <p className="font-semibold">{m.name}</p>
-              {m.address && <p className="text-xs text-muted">{m.address}</p>}
+              {m.address && <p className="text-xs text-muted">{meetingAddress(area, m)}</p>}
             </Link>
           ))}
           {nextMeetings.length === 0 && <p className="text-sm text-muted">Ei tulevia kokouksia tiedossa.</p>}

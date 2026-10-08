@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { areaDb } from "@/lib/db";
-import { areaPath, requireArea } from "@/lib/area";
+import { areaPath, meetingAddress, requireArea } from "@/lib/area";
 import { ServiceMap } from "@/components/service-map";
 import { formatDate } from "@/lib/week";
 import { naIntroParagraphs, getUpcomingMeetings, isOnBreak } from "@/lib/na-meetings";
@@ -54,7 +54,7 @@ export default async function NaRyhmatPage({ params, searchParams }: PageProps<"
                 {m.weekday} klo {m.time}
               </p>
               <p className="font-semibold">{m.name}</p>
-              {m.address && <p className="text-xs text-muted">{m.address}</p>}
+              {m.address && <p className="text-xs text-muted">{meetingAddress(area, m)}</p>}
             </Link>
           ))}
           {upcoming.length === 0 && <p className="text-sm text-muted">Ei tulevia kokouksia tiedossa.</p>}
@@ -95,7 +95,7 @@ export default async function NaRyhmatPage({ params, searchParams }: PageProps<"
               {m.weekday} klo {m.time}
               {m.durationMinutes ? ` · ${m.durationMinutes} min` : ""}
             </p>
-            {m.address && <p className="text-xs text-muted">{m.address}</p>}
+            {m.address && <p className="text-xs text-muted">{meetingAddress(area, m)}</p>}
             {isOnBreak(m) && (
               <p className="mt-1 text-xs font-semibold text-danger">
                 Tauolla {formatDate(m.onBreakUntil!)} asti

@@ -4,7 +4,21 @@ import { cookies } from "next/headers";
 import { notFound } from "next/navigation";
 import { prisma } from "@/lib/db";
 import { AREA_COOKIE } from "@/lib/area-slugs";
-import type { Area, SiteSettings, User } from "@prisma/client";
+import type { Area, User } from "@prisma/client";
+import { isNationalAdmin } from "@/lib/area-format";
+
+// The pure helpers live in area-format.ts, so code that must not touch the
+// request (the paper's HTML, scripts) can use them; re-exported here so
+// pages keep one import.
+export {
+  areaPath,
+  areaUrl,
+  areaOrgName,
+  naCityNames,
+  meetingAddress,
+  isNationalAdmin,
+  canActInArea,
+} from "@/lib/area-format";
 
 export const getActiveAreas = cache(() =>
   prisma.area.findMany({ where: { active: true }, orderBy: { sortOrder: "asc" } }),
@@ -21,28 +35,6 @@ export const requireArea = cache(async (slug: string): Promise<Area> => {
   if (!area || !area.active) notFound();
   return area;
 });
-
-/** "/tampere/palvelut" from an area and "/palvelut". */
-export function areaPath(area: Pick<Area, "id">, path = ""): string {
-  return `/${area.id}${path}`;
-}
-
-/** The area's public address, printed (with a QR code) in its paper. */
-export function areaUrl(settings: Pick<SiteSettings, "publicSiteUrl">, area: Pick<Area, "id">): string {
-  return `${settings.publicSiteUrl.replace(/\/+$/, "")}/${area.id}`;
-}
-
-/** "Tampereen Käyttäjäyhteisö": the community as it is known locally. */
-export function areaOrgName(area: Pick<Area, "nameGenitive">): string {
-  return `${area.nameGenitive} Käyttäjäyhteisö`;
-}
-
-export function naCityNames(area: Pick<Area, "naCityNames">): string[] {
-  return area.naCityNames
-    .split(",")
-    .map((c) => c.trim())
-    .filter(Boolean);
-}
 
 /** The last area this visitor opened, if it is still live. */
 export async function getRememberedArea(): Promise<Area | null> {
@@ -73,17 +65,3 @@ export const getWorkingArea = cache(async (user: User): Promise<Area | null> => 
   return areas.find((a) => a.id === slug) ?? areas.find((a) => a.active) ?? areas[0] ?? null;
 });
 
-/** An ADMIN with no home area: runs every area plus the national settings. */
-export function isNationalAdmin(user: Pick<User, "role" | "areaId">): boolean {
-  return user.role === "ADMIN" && !user.areaId;
-}
-
-/**
- * Whether this user may change something belonging to the given area. A
- * national admin may change any area; everyone else only their own. The
- * check that a member is the author (or an admin) is separate and still
- * applies on top.
- */
-export function canActInArea(user: Pick<User, "role" | "areaId">, areaId: string): boolean {
-  return isNationalAdmin(user) || user.areaId === areaId;
-}

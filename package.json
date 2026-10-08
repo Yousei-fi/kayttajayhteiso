@@ -12,7 +12,8 @@
     "db:studio": "prisma studio",
     "db:seed": "tsx prisma/seed.ts",
     "create-admin": "node scripts/create-admin.mjs",
-    "check:area-scope": "tsx scripts/check-area-scope.ts"
+    "check:area-scope": "tsx scripts/check-area-scope.ts",
+    "test-print": "tsx --conditions=react-server scripts/test-print.ts"
   },
   "prisma": {
     "seed": "tsx prisma/seed.ts"
@@ -29,6 +30,7 @@
     "qrcode": "^1.5.4",
     "react": "19.2.8",
     "react-dom": "19.2.8",
+    "server-only": "^0.0.1",
     "zod": "^4.4.3"
   },
   "devDependencies": {

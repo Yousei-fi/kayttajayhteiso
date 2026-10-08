@@ -2,7 +2,7 @@ import { renderMarkdown } from "@/lib/markdown";
 import { formatDate, formatDateRange, formatDateTime, formatTime, monthGenitive } from "@/lib/week";
 import { qrCodeSvg } from "@/lib/qrcode";
 import { naIntroParagraphs } from "@/lib/na-meetings";
-import { areaOrgName, areaUrl } from "@/lib/area";
+import { areaOrgName, areaUrl, meetingAddress } from "@/lib/area-format";
 import { compareCategories } from "@/lib/directory";
 import { ZINE_NAME, zineTagline, candleMarkSvg, flameMarkSvg } from "@/lib/zine-brand";
 import type {
@@ -251,8 +251,8 @@ export async function buildZineHtml(params: {
             </li>`
           : ""
       }
-      <li>${esc(area.nameGenitive)} palvelut <span>(${services.length})</span></li>
-      <li>${esc(area.nameGenitive)} NA-ryhmät <span>(${meetings.length})</span></li>
+      ${services.length > 0 ? `<li>${esc(area.nameGenitive)} palvelut <span>(${services.length})</span></li>` : ""}
+      ${meetings.length > 0 ? `<li>${esc(area.nameGenitive)} NA-ryhmät <span>(${meetings.length})</span></li>` : ""}
       <li>Kirjoita meille</li>
     </ul>
   </section>`;
@@ -298,7 +298,11 @@ export async function buildZineHtml(params: {
   </section>`;
 
   const servicesWithNews = services.filter((s) => s.experiences.length > 0);
-  const servicesHtml = `
+  // An area still writing its services list prints no empty section.
+  const servicesHtml =
+    services.length === 0
+      ? ""
+      : `
   <section class="directory">
     ${sectionTitle(`${area.nameGenitive} palvelut`)}
     <p class="section-lead">
@@ -349,7 +353,10 @@ export async function buildZineHtml(params: {
     ${kokemuksetCta("Haluatko selata kaikkia kokemuksia tai jakaa omasi? Suuntaa sivustolle:")}
   </section>`;
 
-  const meetingsHtml = `
+  const meetingsHtml =
+    meetings.length === 0
+      ? ""
+      : `
   <section class="directory">
     ${sectionTitle(`${area.nameGenitive} NA-ryhmät`)}
     <div class="na-intro">
@@ -366,7 +373,7 @@ export async function buildZineHtml(params: {
               (m) => `
             <div class="dir-row">
               <strong>klo ${esc(m.time)} · ${esc(m.name)}</strong>
-              ${m.address ? esc(m.address) : ""}
+              ${esc(meetingAddress(area, m) ?? "")}
             </div>`,
             )
             .join("")}
