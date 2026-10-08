@@ -60,6 +60,11 @@ export default async function MuokkaaArtikkeliaPage({
           />
           Ehdota tulevaan lehteen
         </label>
+        {article.excludedFromZines && (
+          <p className="rounded bg-red-50 px-3 py-2 text-sm text-danger">
+            Ylläpito on poistanut tämän artikkelin kaikista lehdistä. Se näkyy edelleen sivustolla.
+          </p>
+        )}
 
         {canEdit && (
           <div className="flex gap-3">

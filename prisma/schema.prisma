@@ -46,7 +46,7 @@ model User {
   createdAt    DateTime @default(now())
   areaId       String?
 
-  area         Area?    @relation(fields: [areaId], references: [id])
+  area Area? @relation(fields: [areaId], references: [id])
 
   alerts       Alert[]
   articles     Article[]
@@ -89,15 +89,20 @@ model Alert {
 /// National: an article has no area. It is listed at /artikkelit and runs in
 /// every area's paper.
 model Article {
-  id            String        @id @default(cuid())
-  authorId      String
-  title         String
-  body          String
-  imagePath     String?
-  status        ArticleStatus @default(DRAFT)
-  includeInZine Boolean       @default(true)
-  createdAt     DateTime      @default(now())
-  updatedAt     DateTime      @updatedAt
+  id                String        @id @default(cuid())
+  authorId          String
+  title             String
+  body              String
+  imagePath         String?
+  status            ArticleStatus @default(DRAFT)
+  /// The author's own choice to offer the article to the papers.
+  includeInZine     Boolean       @default(true)
+  /// Set by a national admin to keep the article out of every area's paper
+  /// at once (it stays on the site). Separate from includeInZine so an
+  /// author saving their article never undoes it.
+  excludedFromZines Boolean       @default(false)
+  createdAt         DateTime      @default(now())
+  updatedAt         DateTime      @updatedAt
 
   author User @relation(fields: [authorId], references: [id])
 
@@ -214,29 +219,29 @@ model SiteSettings {
 /// to inflect a place name in code: "Tampereen palvelut" (genitive),
 /// "NA-ryhmiä Tampereella" (inessive).
 model Area {
-  id              String  @id
+  id              String   @id
   name            String
   nameGenitive    String
   nameInessive    String
   /// Comma-separated `kaupunki` values in the nasuomi.org meeting API that
   /// belong to this area, e.g. "Helsinki,Espoo,Vantaa,Kauniainen".
-  naCityNames     String  @default("")
+  naCityNames     String   @default("")
   mapLat          Float
   mapLng          Float
-  mapZoom         Int     @default(12)
+  mapZoom         Int      @default(12)
   /// An inactive area 404s publicly; it stays off until it has a services
   /// list, an admin and a first paper.
-  active          Boolean @default(false)
-  sortOrder       Int     @default(0)
+  active          Boolean  @default(false)
+  sortOrder       Int      @default(0)
   /// Markdown shown at the top of the area's front page, under its name.
-  aboutText       String  @default("")
+  aboutText       String   @default("")
   /// Area email: mailto link and QR code on /tietoa and the area page.
-  contactInfo     String  @default("")
+  contactInfo     String   @default("")
   /// Area Telegram link, with a QR code.
-  socialInfo      String  @default("")
+  socialInfo      String   @default("")
   /// Shown on the last page of this area's paper ("write for the next
   /// issue"), with a mailto: QR code.
-  submissionEmail String  @default("")
+  submissionEmail String   @default("")
   createdAt       DateTime @default(now())
 
   users        User[]

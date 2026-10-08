@@ -47,7 +47,9 @@ export async function getZineDirectorySections(edition: Pick<ZineEdition, "areaI
  * a date people need to plan around is worth printing early.
  *
  * Alerts and events are the area's own; articles are national, so every
- * area's edition draws on the same ones.
+ * area's edition draws on the same ones, and an article a national admin
+ * has excluded from the papers (excludedFromZines) leaves every DRAFT
+ * edition on its next sync. FINAL editions keep what they printed.
  */
 export async function getSyncedUpcomingEdition(area: Pick<Area, "id">): Promise<ZineEdition> {
   const { startDate, endDate } = upcomingEditionRange();
@@ -83,6 +85,7 @@ export async function syncEditionItems(
       where: {
         status: "PUBLISHED",
         includeInZine: true,
+        excludedFromZines: false,
         createdAt: { gte: articleWindowStart(weekStart) },
       },
       include: { author: true },

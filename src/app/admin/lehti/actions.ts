@@ -1,7 +1,8 @@
 "use server";
 
 import { prisma } from "@/lib/db";
-import { requireAreaUser } from "@/lib/auth";
+import { requireAreaUser, requireUser } from "@/lib/auth";
+import { isNationalAdmin } from "@/lib/area";
 import { syncEditionItems, getZineDirectorySections } from "@/lib/zine";
 import { buildZineHtml } from "@/lib/zine-html";
 import { renderZinePdf } from "@/lib/pdf";
@@ -29,6 +30,29 @@ function revalidateEditionPages(areaId: string, editionId: string): void {
   revalidatePath(`/${areaId}/lehti`, "layout");
   revalidatePath(`/${areaId}`);
   revalidatePath("/");
+}
+
+/**
+ * National admins only: keep an article out of every area's paper, or let it
+ * back in. Every DRAFT edition is re-synced straight away, so all the
+ * papers change together; FINAL editions keep what they printed.
+ */
+export async function setArticleExcludedFromZines(articleId: string, excluded: boolean): Promise<void> {
+  const admin = await requireUser("ADMIN");
+  if (!isNationalAdmin(admin)) {
+    throw new Error("Vain valtakunnallinen ylläpitäjä voi poistaa artikkelin kaikista lehdistä.");
+  }
+
+  await prisma.article.update({ where: { id: articleId }, data: { excludedFromZines: excluded } });
+
+  const drafts = await prisma.zineEdition.findMany({ where: { status: "DRAFT" } });
+  for (const edition of drafts) {
+    await syncEditionItems(edition);
+    revalidatePath(`/admin/lehti/${edition.id}`);
+  }
+  revalidatePath("/admin/lehti");
+  revalidatePath("/dashboard/lehti");
+  revalidatePath(`/dashboard/artikkelit/${articleId}`);
 }
 
 export async function toggleItemExcluded(itemId: string): Promise<void> {

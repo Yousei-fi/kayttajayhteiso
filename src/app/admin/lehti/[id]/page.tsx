@@ -1,5 +1,6 @@
 import { prisma } from "@/lib/db";
 import { requireAreaUser } from "@/lib/auth";
+import { isNationalAdmin } from "@/lib/area";
 import { getSiteSettings } from "@/lib/settings";
 import { buildZineHtml } from "@/lib/zine-html";
 import { syncEditionItems, getZineDirectorySections } from "@/lib/zine";
@@ -8,6 +9,7 @@ import { notFound } from "next/navigation";
 import type { ZineContentType } from "@prisma/client";
 import {
   toggleItemExcluded,
+  setArticleExcludedFromZines,
   moveItem,
   finalizeEdition,
   generateEditionPdf,
@@ -21,7 +23,8 @@ const itemTypeLabel: Record<ZineContentType, string> = {
 
 export default async function LehtiEditorPage({ params }: PageProps<"/admin/lehti/[id]">) {
   const { id } = await params;
-  const { area, db } = await requireAreaUser("ADMIN");
+  const { user, area, db } = await requireAreaUser("ADMIN");
+  const national = isNationalAdmin(user);
 
   const edition = await db.zineEdition.findUnique({ where: { id } });
   if (!edition) notFound();
@@ -104,6 +107,13 @@ export default async function LehtiEditorPage({ params }: PageProps<"/admin/leht
                           Poista lehdestä
                         </button>
                       </form>
+                      {national && item.contentType === "ARTICLE" && (
+                        <form action={setArticleExcludedFromZines.bind(null, item.sourceId, true)}>
+                          <button type="submit" className="text-danger underline">
+                            Poista kaikista lehdistä
+                          </button>
+                        </form>
+                      )}
                     </div>
                   )}
                 </li>
