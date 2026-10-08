@@ -6,17 +6,23 @@
  * is the order prisma/data/services-source.txt is written in: urgent help
  * first, then treatment, then everything one browses at leisure.
  *
+ * New areas use the neutral names (the page already says which area it is);
+ * Tampere's list still carries its place-named headings.
+ *
  * A category not listed here sorts after these, alphabetically, so adding
  * one to the source file never drops it — it just lands at the end until
  * someone decides where it belongs.
  */
 const CATEGORY_ORDER = [
   "KIIREELLINEN APU JA KRIISIPALVELUT",
+  "MATALAN KYNNYKSEN PALVELUT JA TERVEYSNEUVONTA",
   "PÄIHDEHOITO, HUUMEHOITO JA RIIPPUVUUSPALVELUT",
   "AIKUISTEN PSYKIATRIA",
   "LASTENPSYKIATRIA",
   "NUORISOPSYKIATRIA",
+  "MIELENTERVEYS- JA PÄIHDEJÄRJESTÖT",
   "TAMPEREELLA TOIMIVAT MIELENTERVEYS- JA PÄIHDEJÄRJESTÖT",
+  "VERTAISTUKIRYHMÄT",
   "VERTAISTUKIRYHMÄT TAMPEREELLA",
   "VERTAISTUKIRYHMÄT TAMPEREEN SEUDULLA",
   "PUHELIN- JA VERKKOPALVELUT",

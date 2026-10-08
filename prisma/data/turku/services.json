@@ -1,0 +1,128 @@
+[
+  {
+    "category": "KIIREELLINEN APU JA KRIISIPALVELUT",
+    "name": "Hätänumero 112",
+    "address": null,
+    "phone": null,
+    "description": "Henkeä uhkaavat tilanteet, vakava itsetuhoisuus, tajuttomuus, yliannostus tai muu välitön vaara.",
+    "lat": null,
+    "lng": null
+  },
+  {
+    "category": "KIIREELLINEN APU JA KRIISIPALVELUT",
+    "name": "Päivystysapu",
+    "address": null,
+    "phone": "116 117",
+    "description": "Soita ensin tähän, kun tarvitset kiireellistä hoitoa ja oma terveysasema on suljettu. Terveydenhuollon ammattilainen arvioi tilanteen ja ohjaa oikeaan hoitopaikkaan.",
+    "lat": null,
+    "lng": null
+  },
+  {
+    "category": "KIIREELLINEN APU JA KRIISIPALVELUT",
+    "name": "Tyks T-sairaalan yhteispäivystys",
+    "address": "Savitehtaankatu 1, 20520 Turku",
+    "phone": null,
+    "description": "Aikuisten päivystys. Soita ennen hakeutumista Päivystysapuun 116 117. Välittömässä hengenvaarassa 112.",
+    "lat": 60.453647,
+    "lng": 22.2977043
+  },
+  {
+    "category": "KIIREELLINEN APU JA KRIISIPALVELUT",
+    "name": "Varhan sosiaali- ja kriisipäivystys",
+    "address": null,
+    "phone": "02 262 6003",
+    "description": "Avoinna ympäri vuorokauden. Välitöntä ammattilaisen apua äkillisissä kriiseissä ja kiireellisissä sosiaalisissa tilanteissa.",
+    "lat": null,
+    "lng": null
+  },
+  {
+    "category": "KIIREELLINEN APU JA KRIISIPALVELUT",
+    "name": "MIELI Kriisipuhelin",
+    "address": null,
+    "phone": "09 2525 0111",
+    "description": "Avoinna suomeksi ympäri vuorokauden. Voit soittaa nimettömästi ja luottamuksellisesti.",
+    "lat": null,
+    "lng": null
+  },
+  {
+    "category": "KIIREELLINEN APU JA KRIISIPALVELUT",
+    "name": "MIELI Kriisikeskus Turku",
+    "address": "Maariankatu 6 B, 3. kerros, 20100 Turku",
+    "phone": "040 822 3961, ma, ti ja to klo 13–15",
+    "description": "Lyhytkestoista ja maksutonta kriisiapua ja keskustelutukea ilman lähetettä, halutessaan nimettömästi.",
+    "lat": 60.4541664,
+    "lng": 22.2680151
+  },
+  {
+    "category": "KIIREELLINEN APU JA KRIISIPALVELUT",
+    "name": "Seri-tukikeskus (Tyks)",
+    "address": "Savitehtaankatu 5, 20520 Turku",
+    "phone": "050 475 6108",
+    "description": "Avoinna ympäri vuorokauden. Apua seksuaalista väkivaltaa kokeneille.",
+    "lat": 60.4518576,
+    "lng": 22.2971406
+  },
+  {
+    "category": "KIIREELLINEN APU JA KRIISIPALVELUT",
+    "name": "Nollalinja",
+    "address": null,
+    "phone": "116 016",
+    "description": "Avoinna ympäri vuorokauden. Apua lähisuhdeväkivaltaa tai naisiin kohdistuvaa väkivaltaa kokeneille sekä heidän läheisilleen.",
+    "lat": null,
+    "lng": null
+  },
+  {
+    "category": "KIIREELLINEN APU JA KRIISIPALVELUT",
+    "name": "Rikosuhripäivystys",
+    "address": null,
+    "phone": "116 006, ma–to klo 9–18, pe klo 9–16",
+    "description": "Apua, jos olet joutunut tai epäilet joutuneesi rikoksen uhriksi.",
+    "lat": null,
+    "lng": null
+  },
+  {
+    "category": "MATALAN KYNNYKSEN PALVELUT JA TERVEYSNEUVONTA",
+    "name": "Terveysneuvontapiste Milli",
+    "address": "Luolavuorentie 2, talo 30 A, 20700 Turku",
+    "phone": null,
+    "description": "Monipalvelukeskus Toivossa. Maksuton matalan kynnyksen palvelupiste huumeita käyttäville ja heidän läheisilleen: puhtaat käyttövälineet ja välineiden vaihto, terveysneuvontaa. Kaikille ma–ti klo 12–18, ke klo 12–16, to klo 12–18, pe klo 12–16. Naisille ja sukupuolivähemmistöihin kuuluville ma klo 10–12 ja alle 25-vuotiaille ke klo 10–12 (soita ovikelloa). Bussi 8. Kokemusasiantuntijoita tavattavissa.",
+    "lat": 60.4381632,
+    "lng": 22.275299
+  },
+  {
+    "category": "MATALAN KYNNYKSEN PALVELUT JA TERVEYSNEUVONTA",
+    "name": "Ajanvaraukseton päihdevastaanotto Askel",
+    "address": "Kunnallissairaalantie 20, talo 4, 3. kerros, 20700 Turku",
+    "phone": null,
+    "description": "Varhan päihdevastaanotto täysi-ikäisille ilman ajanvarausta: ma, ke ja pe klo 8.30–15, ti ja to klo 12–15. Hoidon tarpeen arvio, korvaushoidon arviot, vieroituksen ja katkaisuhoidon suunnittelu, laboratorio- ja huumetestit, tietoa yliannostusten ehkäisystä ja naloksoni-nenäsumutetta. Voi asioida nimettömästi. Kokemusasiantuntija paikalla ma, ti ja to klo 12–15. Tukea myös läheisille.",
+    "lat": 60.4399541,
+    "lng": 22.2768062
+  },
+  {
+    "category": "PÄIHDEHOITO, HUUMEHOITO JA RIIPPUVUUSPALVELUT",
+    "name": "Varhan mielenterveys- ja päihdepalveluiden hoidon tarpeen arviointi",
+    "address": null,
+    "phone": "02 313 4242, ma–to klo 8–16, pe klo 8–15",
+    "description": "Tästä numerosta pääsee Varhan päihde- ja riippuvuushoitoon sekä mielenterveyspalveluihin koko Varsinais-Suomessa.",
+    "lat": null,
+    "lng": null
+  },
+  {
+    "category": "PÄIHDEHOITO, HUUMEHOITO JA RIIPPUVUUSPALVELUT",
+    "name": "EHYT Päihdeneuvonta",
+    "address": null,
+    "phone": "0800 900 45",
+    "description": "Maksuton, nimetön ja luottamuksellinen päihdeneuvonta ympäri vuorokauden, vuoden jokaisena päivänä. Myös läheisille.",
+    "lat": null,
+    "lng": null
+  },
+  {
+    "category": "MIELENTERVEYS- JA PÄIHDEJÄRJESTÖT",
+    "name": "Turun A-Kilta ry – Toimintakeskus Pääsky",
+    "address": "Pääskyvuorenrinne 1, 20610 Turku",
+    "phone": "050 543 4034",
+    "description": "Vertaistukea päihteistä toipuville ja heidän läheisilleen, edullinen lämmin ateria arkisin, ruoka-apua, liikuntaa ja asiointiapua.",
+    "lat": 60.4458157,
+    "lng": 22.3304745
+  }
+]

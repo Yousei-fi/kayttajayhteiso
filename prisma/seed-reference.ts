@@ -22,6 +22,21 @@ Tiedostamme että päihdepoliittinen tilanne Suomessa kaipaa parannusta ja vaadi
 
 Yhteisöömme ovat tervetulleet niin huumeidenkäyttäjät, kuin niitä ennen käyttäneet tai kuka tahansa yhteisöstämme kiinnostunut taho.`;
 
+/** /tietoa's text for a fresh install; the 20261008180000 migration puts the same text in place on existing ones. */
+const NATIONAL_ABOUT_TEXT = `## Palvelut, vertaistuki ja oma lehti
+
+Kokoamme päihdepalveluiden ajankohtaiset ilmoitukset, palvelut, NA-ryhmät ja yhteisömme kirjoituksia. Jokainen alue tekee niistä oman painetun lehtensä.
+
+Käyttäjäyhteisö pyrkii edustamaan päihdekäyttäjäyhteisöä eri puolilla Suomea, tunnistaen että yhteisömme koostuu ihmisistä, jotka tulevat hyvin erilaisista lähtökohdista ja ovat hyvin erilaisissa tilanteissa. Ensisijaiseksi katsomme tuoda kaikista huono-osaisempien äänen kuuluviin, sillä tiedostamme että juuri huonoimmassa asemassa olevat ovat suurimman uhan alla ja vaarassa menehtyä.
+
+Tärkein meitä ohjaava periaate on siis henkien pelastaminen. Tämän lisäksi pyrimme edistämään yhteisömme hyvinvointia ja parantamaan suhteitamme yhteiskuntaan, muihin yhteisöihin, naapurustoon ja viranomaisiin.
+
+Tiedostamme että päihdepoliittinen tilanne Suomessa kaipaa parannusta ja vaadimme että vertaistemme ääni on mukana kaikessa yhteisöämme koskevissa asioissa.
+
+Toimimme alueittain pääkaupunkiseudulla, Tampereella ja Turussa. Jokaisella alueella on omat yhteystietonsa, palveluhakemistonsa, NA-ryhmänsä ja oma lehtensä – löydät ne alueen omalta sivulta.
+
+Yhteisöömme ovat tervetulleet niin huumeidenkäyttäjät, kuin niitä ennen käyttäneet tai kuka tahansa yhteisöstämme kiinnostunut taho.`;
+
 const REAL_EMAIL = "tampere@kayttajayhteiso.fi";
 const REAL_TELEGRAM = "http://dy.fi/7zs";
 const REAL_SITE_URL = "https://kayttajayhteiso.fi";
@@ -59,7 +74,7 @@ async function syncSiteSettings(): Promise<void> {
   const existing = await prisma.siteSettings.findUnique({ where: { id: 1 } });
 
   if (!existing) {
-    await prisma.siteSettings.create({ data: { id: 1, publicSiteUrl: REAL_SITE_URL } });
+    await prisma.siteSettings.create({ data: { id: 1, publicSiteUrl: REAL_SITE_URL, aboutText: NATIONAL_ABOUT_TEXT } });
     console.log("SiteSettings: luotu oletusarvoilla.");
     return;
   }
@@ -69,6 +84,7 @@ async function syncSiteSettings(): Promise<void> {
   if (!existing.publicSiteUrl || RETIRED_SITE_URLS.includes(existing.publicSiteUrl))
     fixes.publicSiteUrl = REAL_SITE_URL;
   if (existing.backPageText === RETIRED_BACKPAGE_TEXT) fixes.backPageText = "";
+  if (!existing.aboutText) fixes.aboutText = NATIONAL_ABOUT_TEXT;
 
   if (Object.keys(fixes).length > 0) {
     await prisma.siteSettings.update({ where: { id: 1 }, data: fixes });
