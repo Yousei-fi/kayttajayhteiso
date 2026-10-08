@@ -3,11 +3,11 @@
 import { postExperience } from "@/lib/experiences";
 import type { ExperienceFormState } from "@/lib/experience-format";
 
-export async function addExperience(
+/** The board's form, where the poster picks the service themselves. */
+export async function addBoardExperience(
   areaId: string,
-  serviceId: string,
   _prev: ExperienceFormState,
   formData: FormData,
 ): Promise<ExperienceFormState> {
-  return postExperience(areaId, serviceId, String(formData.get("body") ?? ""));
+  return postExperience(areaId, String(formData.get("serviceId") ?? ""), String(formData.get("body") ?? ""));
 }

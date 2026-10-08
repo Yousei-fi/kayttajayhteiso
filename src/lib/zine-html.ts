@@ -16,6 +16,8 @@ import type {
 } from "@prisma/client";
 
 type EditionWithItems = ZineEdition & { items: ZineItem[] };
+const MAX_PRINTED_EXPERIENCES = 12;
+
 type ServiceWithExperiences = DirectoryService & { experiences: Experience[] };
 
 function esc(s: string): string {
@@ -146,6 +148,7 @@ export async function buildZineHtml(params: {
 }): Promise<string> {
   const { edition, settings, area, services, meetings, mode, assetBaseUrl } = params;
   const siteUrl = areaUrl(settings, area);
+  const experiencesUrl = `${siteUrl}/kokemukset`;
   const orgName = areaOrgName(area);
   const aboutText = area.aboutText || settings.aboutText;
   const submissionEmail = area.submissionEmail;
@@ -170,7 +173,7 @@ export async function buildZineHtml(params: {
   const articlesTitle = `${monthGenitive(edition.startDate)} luettavaa`;
 
   const [kokemuksetQr, submissionQr] = await Promise.all([
-    qrCodeSvg(siteUrl),
+    qrCodeSvg(experiencesUrl),
     submissionEmail ? qrCodeSvg(`mailto:${submissionEmail}`) : Promise.resolve(null),
   ]);
 
@@ -180,7 +183,7 @@ export async function buildZineHtml(params: {
   const kokemuksetCta = (label: string) => `
     <div class="kokemukset-cta">
       ${kokemuksetQr ? `<div class="cta-qr">${kokemuksetQr}</div>` : ""}
-      <p>${esc(label)} <strong>${esc(siteUrl)}</strong></p>
+      <p>${esc(label)} <strong>${esc(experiencesUrl)}</strong></p>
     </div>`;
 
   const coverHtml = `
@@ -297,7 +300,16 @@ export async function buildZineHtml(params: {
       .join("\n")}
   </section>`;
 
-  const servicesWithNews = services.filter((s) => s.experiences.length > 0);
+  // A busy week would otherwise fill the paper with posts: print the newest
+  // few and send readers to the site for the rest.
+  const weekExperiences = services
+    .flatMap((s) => s.experiences.map((e) => ({ service: s, e })))
+    .sort((a, b) => b.e.createdAt.getTime() - a.e.createdAt.getTime());
+  const printedExperiences = weekExperiences.slice(0, MAX_PRINTED_EXPERIENCES);
+  const servicesWithNews = services
+    .map((s) => ({ ...s, experiences: printedExperiences.filter((p) => p.service.id === s.id).map((p) => p.e) }))
+    .filter((s) => s.experiences.length > 0);
+  const moreExperiences = weekExperiences.length - printedExperiences.length;
   // An area still writing its services list prints no empty section.
   const servicesHtml =
     services.length === 0
@@ -332,10 +344,10 @@ export async function buildZineHtml(params: {
         .join("")}
     </div>
 
-    <h3 class="subsection-title">Uudet kokemukset tällä viikolla</h3>
+    <h3 class="subsection-title">Viime viikon kokemukset</h3>
     ${
       servicesWithNews.length === 0
-        ? `<p class="muted">Ei uusia kokemuksia tällä viikolla.</p>`
+        ? `<p class="muted">Ei uusia kokemuksia viime viikolla.</p>`
         : `<div class="kokemus-grid">
             ${servicesWithNews
               .map(
@@ -348,7 +360,7 @@ export async function buildZineHtml(params: {
               </div>`,
               )
               .join("")}
-          </div>`
+          </div>${moreExperiences > 0 ? `<p class="muted">…ja ${moreExperiences} muuta kokemusta sivustolla.</p>` : ""}`
     }
     ${kokemuksetCta("Haluatko selata kaikkia kokemuksia tai jakaa omasi? Suuntaa sivustolle:")}
   </section>`;
@@ -745,7 +757,7 @@ function zineCss(mode: "preview" | "print"): string {
       letter-spacing: 0.1em;
       color: var(--accent-2);
     }
-    .kokemus-body { font-size: 12px; margin: 1mm 0; line-height: 1.45; }
+    .kokemus-body { font-size: 12px; margin: 1mm 0; line-height: 1.45; white-space: pre-line; }
 
     /* Kept deliberately small: it trails a section that ends wherever the
        content happens to end, and as an unbreakable block a taller one

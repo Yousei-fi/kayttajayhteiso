@@ -49,8 +49,13 @@ async function main(): Promise<void> {
     const untouched = await prisma.streetRound.findUniqueOrThrow({ where: { id: other.id } });
     assert.equal(untouched.participants, null);
 
-    assert.equal(await turku.directoryService.count(), 0, "Turku has no Tampere services");
-    assert.ok((await tampere.directoryService.count()) >= 0);
+    const turkuServices = await turku.directoryService.findMany({ select: { areaId: true } });
+    assert.ok(turkuServices.every((s) => s.areaId === "turku"), "Turku sees only its own services");
+    assert.equal(
+      turkuServices.length,
+      await prisma.directoryService.count({ where: { areaId: "turku" } }),
+      "Turku sees all of its own services",
+    );
 
     console.log("Area scoping: all checks passed.");
   } finally {

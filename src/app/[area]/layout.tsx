@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { areaOrgName, areaPath, requireArea } from "@/lib/area";
 import { ZINE_NAME } from "@/lib/zine-brand";
+import { RememberArea } from "@/components/remember-area";
 
 export async function generateMetadata({ params }: LayoutProps<"/[area]">): Promise<Metadata> {
   const area = await requireArea((await params).area);
@@ -22,6 +23,7 @@ export default async function AreaLayout({ children, params }: LayoutProps<"/[ar
 
   const links = [
     { href: areaPath(area, "/palvelut"), label: "Palvelut" },
+    { href: areaPath(area, "/kokemukset"), label: "Kokemukset" },
     { href: areaPath(area, "/na-ryhmat"), label: "NA-ryhmät" },
     { href: areaPath(area, "/tapahtumat"), label: "Tapahtumat" },
     { href: areaPath(area, "/ilmoitukset"), label: "Ilmoitukset" },
@@ -30,6 +32,7 @@ export default async function AreaLayout({ children, params }: LayoutProps<"/[ar
 
   return (
     <>
+      <RememberArea slug={area.id} />
       <div className="border-b border-line bg-accent/5">
         <div className="mx-auto flex max-w-6xl flex-wrap items-center gap-x-5 gap-y-1 px-4 py-2 text-sm">
           <Link href={areaPath(area)} className="font-bold text-accent">

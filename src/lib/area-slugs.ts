@@ -16,10 +16,18 @@ export const DEFAULT_AREA_SLUG = "tampere";
 
 /**
  * Remembers the last area a visitor opened, so the national front page can
- * lead with it and old root-level paths (/palvelut) know where to go. Also
- * the dashboard's working area for a national admin.
+ * lead with it and old root-level paths (/palvelut) know where to go. Set
+ * in the browser by <RememberArea> on an area page, never by the proxy: the
+ * header's area links are prefetched, and a prefetch would count as a visit.
  */
 export const AREA_COOKIE = "kk_area";
+
+/**
+ * A national admin's working area in /dashboard and /admin. Its own cookie,
+ * set only by the switcher, so browsing the public area pages never moves
+ * the admin into another area's paper mid-edit.
+ */
+export const WORK_AREA_COOKIE = "kk_work_area";
 
 /**
  * Root-level paths from before areas existed. Each now lives under an area

@@ -5,7 +5,7 @@ import type { Area, ZineEdition } from "@prisma/client";
 /**
  * The directory (services, NA meetings) for the zine's "Palvelut"/
  * "NA-ryhmät" sections, with services carrying the Kokemukset posted
- * during a given edition's week. Unlike alerts/articles these aren't
+ * during the week before the edition (it is printed before its own week). Unlike alerts/articles these aren't
  * snapshotted into ZineItem — the directories themselves barely change,
  * and Experience rows are already immutable historical records once a
  * week has passed, so a live query naturally gives the same stable
@@ -16,8 +16,8 @@ import type { Area, ZineEdition } from "@prisma/client";
  */
 export async function getZineDirectorySections(edition: Pick<ZineEdition, "areaId" | "startDate" | "endDate">) {
   const db = areaDb(edition.areaId);
-  const weekEndExclusive = new Date(edition.endDate.getTime() + 24 * 60 * 60 * 1000);
-  const experienceWindow = { gte: edition.startDate, lt: weekEndExclusive };
+  // The week before the edition: it is printed before its own week starts.
+  const experienceWindow = { gte: new Date(edition.startDate.getTime() - 7 * 24 * 60 * 60 * 1000), lt: edition.startDate };
 
   const [services, meetings] = await Promise.all([
     db.directoryService.findMany({

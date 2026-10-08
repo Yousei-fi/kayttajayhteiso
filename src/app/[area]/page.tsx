@@ -1,5 +1,6 @@
 import Link from "next/link";
-import { areaDb } from "@/lib/db";
+import { areaDb, prisma } from "@/lib/db";
+import { ExperiencePost } from "@/components/experience-post";
 import { areaOrgName, areaPath, meetingAddress, requireArea } from "@/lib/area";
 import { formatDateRange, formatDateTime } from "@/lib/week";
 import { getUpcomingMeetings } from "@/lib/na-meetings";
@@ -13,7 +14,7 @@ export default async function AreaHomePage({ params }: PageProps<"/[area]">) {
   const db = areaDb(area.id);
   const now = new Date();
 
-  const [alerts, edition, events, meetings] = await Promise.all([
+  const [alerts, edition, events, meetings, experiences, experienceCount] = await Promise.all([
     db.alert.findMany({
       where: { archived: false, OR: [{ validUntil: null }, { validUntil: { gte: now } }] },
       orderBy: { createdAt: "desc" },
@@ -27,6 +28,13 @@ export default async function AreaHomePage({ params }: PageProps<"/[area]">) {
       take: 3,
     }),
     db.naMeeting.findMany({ where: { cancelled: false } }),
+    prisma.experience.findMany({
+      where: { service: { areaId: area.id } },
+      orderBy: { createdAt: "desc" },
+      take: 3,
+      include: { service: { select: { id: true, name: true, category: true } } },
+    }),
+    prisma.experience.count({ where: { service: { areaId: area.id } } }),
   ]);
   const nextMeetings = getUpcomingMeetings(meetings, 3, now);
 
@@ -55,6 +63,36 @@ export default async function AreaHomePage({ params }: PageProps<"/[area]">) {
             Lue uusin {ZINE_NAME} ({formatDateRange(edition.startDate, edition.endDate)})
           </Link>
         )}
+      </section>
+
+      <section className="mb-10 rounded-lg border-2 border-accent-2 bg-paper p-5">
+        <div className="mb-1 flex flex-wrap items-baseline justify-between gap-2">
+          <h2 className="text-lg font-bold">Kokemuksia palveluista</h2>
+          <Link href={areaPath(area, "/kokemukset")} className="text-sm text-accent-2 underline">
+            Kaikki kokemukset ({experienceCount})
+          </Link>
+        </div>
+        <p className="mb-4 text-sm text-muted">
+          Miten palvelussa kohdeltiin? Kerro nimettömästi ja lue, mitä muut ovat kokeneet ennen kuin lähdet.
+        </p>
+        <div className="flex flex-col gap-3">
+          {experiences.map((e) => (
+            <ExperiencePost
+              key={e.id}
+              body={e.body}
+              createdAt={e.createdAt}
+              service={e.service}
+              boardHref={e.service ? areaPath(area, `/kokemukset?palvelu=${e.service.id}`) : undefined}
+            />
+          ))}
+          {experiences.length === 0 && <p className="text-sm text-muted">Ei vielä kokemuksia. Ole ensimmäinen!</p>}
+        </div>
+        <Link
+          href={areaPath(area, "/kokemukset#kerro")}
+          className="mt-4 inline-block rounded bg-accent px-4 py-2 text-sm font-semibold text-white"
+        >
+          Kerro oma kokemuksesi
+        </Link>
       </section>
 
       <section className="mb-10">

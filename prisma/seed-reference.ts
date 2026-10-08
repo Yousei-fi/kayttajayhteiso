@@ -22,10 +22,10 @@ Tiedostamme että päihdepoliittinen tilanne Suomessa kaipaa parannusta ja vaadi
 
 Yhteisöömme ovat tervetulleet niin huumeidenkäyttäjät, kuin niitä ennen käyttäneet tai kuka tahansa yhteisöstämme kiinnostunut taho.`;
 
-/** /tietoa's text for a fresh install; the 20261008180000 migration puts the same text in place on existing ones. */
-const NATIONAL_ABOUT_TEXT = `## Palvelut, vertaistuki ja oma lehti
+/** /tietoa's text for a fresh install; the 20261008180000 and 20261009090000 migrations put the same text in place on existing ones. */
+const NATIONAL_ABOUT_TEXT = `## Vertaislähtöistä haittoja vähentävää aktivismia
 
-Kokoamme päihdepalveluiden ajankohtaiset ilmoitukset, palvelut, NA-ryhmät ja yhteisömme kirjoituksia. Jokainen alue tekee niistä oman painetun lehtensä.
+Kokoamme jokaisen alueen päihdepalveluiden ajankohtaiset ilmoitukset, palvelut ja NA-ryhmät – ja ennen kaikkea yhteisömme kokemukset niistä. Kuka tahansa voi kertoa sivustolla nimettömästi, miten palvelussa kohdeltiin, ja lukea muiden kokemukset ennen kuin lähtee. Jokainen alue tekee kaikesta tästä myös oman painetun lehtensä.
 
 Käyttäjäyhteisö pyrkii edustamaan päihdekäyttäjäyhteisöä eri puolilla Suomea, tunnistaen että yhteisömme koostuu ihmisistä, jotka tulevat hyvin erilaisista lähtökohdista ja ovat hyvin erilaisissa tilanteissa. Ensisijaiseksi katsomme tuoda kaikista huono-osaisempien äänen kuuluviin, sillä tiedostamme että juuri huonoimmassa asemassa olevat ovat suurimman uhan alla ja vaarassa menehtyä.
 

@@ -3,10 +3,8 @@
 import { prisma } from "@/lib/db";
 import { requireAreaUser, requireUser } from "@/lib/auth";
 import { isNationalAdmin } from "@/lib/area";
-import { syncEditionItems, getZineDirectorySections } from "@/lib/zine";
-import { buildZineHtml } from "@/lib/zine-html";
-import { renderZinePdf } from "@/lib/pdf";
-import { getSiteSettings } from "@/lib/settings";
+import { syncEditionItems } from "@/lib/zine";
+import { publishEdition, renderEditionPdf } from "@/lib/zine-publish";
 import { revalidatePath } from "next/cache";
 
 /**
@@ -81,43 +79,13 @@ export async function moveItem(editionId: string, itemId: string, direction: "up
 }
 
 export async function finalizeEdition(editionId: string): Promise<void> {
-  const { edition } = await requireEdition(editionId);
-  if (edition.status !== "DRAFT") return;
-
-  await syncEditionItems(edition);
-  await prisma.zineEdition.update({
-    where: { id: edition.id },
-    data: { status: "FINAL", publishedAt: new Date() },
-  });
-
+  const { area, edition } = await requireEdition(editionId);
+  await publishEdition(edition, area);
   revalidateEditionPages(edition.areaId, editionId);
 }
 
 export async function generateEditionPdf(editionId: string): Promise<void> {
-  const { area, edition: found } = await requireEdition(editionId);
-  const [edition, settings] = await Promise.all([
-    prisma.zineEdition.findUniqueOrThrow({
-      where: { id: found.id },
-      include: { items: { orderBy: { sortOrder: "asc" } } },
-    }),
-    getSiteSettings(),
-  ]);
-  const { services, meetings } = await getZineDirectorySections(edition);
-
-  const html = await buildZineHtml({
-    edition,
-    settings,
-    area,
-    services,
-    meetings,
-    mode: "print",
-    assetBaseUrl: process.env.APP_URL ?? "http://localhost:3000",
-  });
-
-  const filename = `kynttila-pimeydessa-${area.id}-${edition.startDate.toISOString().slice(0, 10)}.pdf`;
-  const pdfPath = await renderZinePdf(html, area.id, filename);
-
-  await prisma.zineEdition.update({ where: { id: edition.id }, data: { pdfPath } });
-
+  const { area, edition } = await requireEdition(editionId);
+  await renderEditionPdf(edition.id, area);
   revalidateEditionPages(edition.areaId, editionId);
 }

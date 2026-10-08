@@ -3,7 +3,7 @@ import { cache } from "react";
 import { cookies } from "next/headers";
 import { notFound } from "next/navigation";
 import { prisma } from "@/lib/db";
-import { AREA_COOKIE } from "@/lib/area-slugs";
+import { AREA_COOKIE, WORK_AREA_COOKIE } from "@/lib/area-slugs";
 import type { Area, User } from "@prisma/client";
 import { isNationalAdmin } from "@/lib/area-format";
 
@@ -60,7 +60,7 @@ export const getWorkingArea = cache(async (user: User): Promise<Area | null> => 
   }
   if (!isNationalAdmin(user)) return null;
 
-  const slug = (await cookies()).get(AREA_COOKIE)?.value;
+  const slug = (await cookies()).get(WORK_AREA_COOKIE)?.value;
   const areas = await getAllAreas();
   return areas.find((a) => a.id === slug) ?? areas.find((a) => a.active) ?? areas[0] ?? null;
 });

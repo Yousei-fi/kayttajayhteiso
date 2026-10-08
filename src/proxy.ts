@@ -7,17 +7,13 @@ import {
   isAreaSlug,
 } from "@/lib/area-slugs";
 
-const ONE_YEAR = 60 * 60 * 24 * 365;
-
 /**
- * Three jobs, all about which area a request belongs to:
+ * Two jobs, both about which area a request belongs to:
  *
  * - /pks/... is the short form printed on paper; send it to the full slug.
  * - A root-level path from before areas (/palvelut, /lehti/arkisto) goes to
  *   the same section of the visitor's remembered area, or Tampere's, since
  *   every such link in the wild was Tampere's.
- * - Opening any /<area> page remembers that area in a cookie, so the
- *   national front page can lead with it next time.
  *
  * Unknown or inactive slugs are left to the [area] layout, which 404s.
  */
@@ -38,11 +34,7 @@ export function proxy(request: NextRequest) {
     return NextResponse.redirect(new URL(`/${area}${pathname}${search}`, request.url), 307);
   }
 
-  const response = NextResponse.next();
-  if (isAreaSlug(first) && request.cookies.get(AREA_COOKIE)?.value !== first) {
-    response.cookies.set(AREA_COOKIE, first, { path: "/", maxAge: ONE_YEAR, sameSite: "lax" });
-  }
-  return response;
+  return NextResponse.next();
 }
 
 export const config = {

@@ -15,6 +15,7 @@ export default async function PalvelutPage({ params, searchParams }: PageProps<"
     db.directoryService.findMany({
       where: kategoria ? { category: kategoria } : undefined,
       orderBy: [{ category: "asc" }, { name: "asc" }],
+      include: { _count: { select: { experiences: true } } },
     }),
     db.directoryService.findMany({
       distinct: ["category"],
@@ -82,17 +83,31 @@ export default async function PalvelutPage({ params, searchParams }: PageProps<"
               <p className="text-xs uppercase tracking-wide text-accent-2">{s.category}</p>
               {s.address && <p className="text-xs text-muted">{s.address}</p>}
               {s.description && <p className="mt-1 line-clamp-2 text-sm">{s.description}</p>}
+              {s._count.experiences > 0 && (
+                <Link
+                  href={areaPath(area, `/kokemukset?palvelu=${s.id}`)}
+                  className="mt-1 inline-block text-xs text-accent-2 hover:underline"
+                >
+                  {s._count.experiences} {s._count.experiences === 1 ? "kokemus" : "kokemusta"}
+                </Link>
+              )}
             </li>
           ))}
           {sortedServices.length === 0 && <p className="text-sm text-muted">Ei palveluita tässä kategoriassa.</p>}
         </ul>
 
         <div>
-          <h2 className="mb-3 text-sm font-bold uppercase tracking-wide text-muted">Uusimmat kokemukset</h2>
+          <h2 className="mb-1 text-sm font-bold uppercase tracking-wide text-muted">Uusimmat kokemukset</h2>
+          <Link
+            href={areaPath(area, "/kokemukset#kerro")}
+            className="mb-3 inline-block rounded bg-accent px-3 py-1.5 text-sm font-semibold text-white"
+          >
+            Kerro oma kokemuksesi
+          </Link>
           <ul className="flex flex-col gap-3">
             {latestExperiences.map((e) => (
               <li key={e.id} className="rounded border border-line bg-paper p-3 text-sm">
-                <p>{e.body}</p>
+                <p className="line-clamp-4 whitespace-pre-line">{e.body}</p>
                 <p className="mt-1 text-xs text-muted">
                   {e.service && (
                     <Link href={areaPath(area, `/palvelut/${e.service.id}`)} className="text-accent-2 hover:underline">
@@ -107,6 +122,11 @@ export default async function PalvelutPage({ params, searchParams }: PageProps<"
               <p className="text-sm text-muted">Ei vielä kokemuksia.</p>
             )}
           </ul>
+          {latestExperiences.length > 0 && (
+            <Link href={areaPath(area, "/kokemukset")} className="mt-3 inline-block text-sm text-accent-2 underline">
+              Kaikki kokemukset
+            </Link>
+          )}
         </div>
       </div>
     </main>

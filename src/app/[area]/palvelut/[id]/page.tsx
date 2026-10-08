@@ -1,9 +1,12 @@
+import Link from "next/link";
 import { areaDb } from "@/lib/db";
-import { requireArea } from "@/lib/area";
-import { formatDate } from "@/lib/week";
+import { areaPath, requireArea } from "@/lib/area";
 import { notFound } from "next/navigation";
 import { addExperience } from "./actions";
 import { ExperienceForm } from "@/components/experience-form";
+import { ExperiencePost } from "@/components/experience-post";
+
+const SHOWN_EXPERIENCES = 10;
 
 export default async function PalveluPage({ params }: PageProps<"/[area]/palvelut/[id]">) {
   const { area: slug, id } = await params;
@@ -11,11 +14,16 @@ export default async function PalveluPage({ params }: PageProps<"/[area]/palvelu
 
   const service = await areaDb(area.id).directoryService.findUnique({
     where: { id },
-    include: { experiences: { orderBy: { createdAt: "desc" } } },
+    include: {
+      experiences: { orderBy: { createdAt: "desc" }, take: SHOWN_EXPERIENCES },
+      _count: { select: { experiences: true } },
+    },
   });
   if (!service) notFound();
 
-  const boundAdd = addExperience.bind(null, service.id);
+  const boundAdd = addExperience.bind(null, area.id, service.id);
+  const total = service._count.experiences;
+  const boardHref = areaPath(area, `/kokemukset?palvelu=${service.id}`);
 
   return (
     <main className="mx-auto max-w-2xl px-4 py-8">
@@ -25,24 +33,24 @@ export default async function PalveluPage({ params }: PageProps<"/[area]/palvelu
       {service.phone && <p className="text-sm text-muted">Puhelin: {service.phone}</p>}
       {service.description && <p className="mt-4 text-sm leading-relaxed">{service.description}</p>}
 
-      <section className="mt-10">
-        <h2 className="mb-2 text-lg font-bold">Jätä kokemus</h2>
+      <section className="mt-10 rounded-lg border-2 border-accent bg-paper p-4">
+        <h2 className="mb-2 text-lg font-bold">Kerro kokemuksesi tästä palvelusta</h2>
         <ExperienceForm action={boundAdd} />
       </section>
 
       <section className="mt-10">
-        <h2 className="mb-3 text-lg font-bold">Kokemukset ({service.experiences.length})</h2>
-        <ul className="flex flex-col gap-3">
+        <h2 className="mb-3 text-lg font-bold">Kokemukset ({total})</h2>
+        <div className="flex flex-col gap-3">
           {service.experiences.map((e) => (
-            <li key={e.id} className="rounded border border-line bg-paper p-3 text-sm">
-              <p>{e.body}</p>
-              <p className="mt-1 text-xs text-muted">{formatDate(e.createdAt)}</p>
-            </li>
+            <ExperiencePost key={e.id} body={e.body} createdAt={e.createdAt} />
           ))}
-          {service.experiences.length === 0 && (
-            <p className="text-sm text-muted">Ei vielä kokemuksia tästä palvelusta.</p>
-          )}
-        </ul>
+          {total === 0 && <p className="text-sm text-muted">Ei vielä kokemuksia tästä palvelusta.</p>}
+        </div>
+        {total > service.experiences.length && (
+          <Link href={boardHref} className="mt-4 inline-block text-sm text-accent-2 underline">
+            Lue kaikki {total} kokemusta
+          </Link>
+        )}
       </section>
     </main>
   );

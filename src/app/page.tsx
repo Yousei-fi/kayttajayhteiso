@@ -5,13 +5,14 @@ import { getSiteSettings } from "@/lib/settings";
 import { formatDate, formatDateRange } from "@/lib/week";
 import { ZINE_NAME } from "@/lib/zine-brand";
 import { CandleMark } from "@/components/icons";
+import { ExperiencePost } from "@/components/experience-post";
 
 /**
  * The national front page: what every area shares (articles), and a way into
  * each area. The visitor's last area, if any, leads.
  */
 export default async function HomePage() {
-  const [settings, areas, remembered, articles] = await Promise.all([
+  const [settings, areas, remembered, articles, experiences] = await Promise.all([
     getSiteSettings(),
     getActiveAreas(),
     getRememberedArea(),
@@ -20,6 +21,12 @@ export default async function HomePage() {
       orderBy: { createdAt: "desc" },
       take: 5,
       include: { author: true },
+    }),
+    prisma.experience.findMany({
+      where: { service: { area: { active: true } } },
+      orderBy: { createdAt: "desc" },
+      take: 4,
+      include: { service: { select: { id: true, name: true, category: true, areaId: true } } },
     }),
   ]);
 
@@ -37,10 +44,10 @@ export default async function HomePage() {
     <main className="mx-auto max-w-3xl px-4 py-8">
       <section className="mb-10 rounded-lg border border-line bg-paper p-6">
         <p className="text-xs font-semibold uppercase tracking-wide text-accent-2">{settings.orgName}</p>
-        <h1 className="mt-1 text-3xl font-bold">Palvelut, vertaistuki ja oma lehti</h1>
+        <h1 className="mt-1 text-3xl font-bold">Vertaislähtöistä haittoja vähentävää aktivismia</h1>
         <p className="mt-2 text-sm text-muted">
           {settings.description ||
-            "Kokoamme päihdepalveluiden ajankohtaiset ilmoitukset, palvelut, NA-ryhmät ja yhteisömme kirjoituksia. Jokainen alue tekee niistä oman painetun lehtensä."}
+            "Olemme päihteitä käyttävien ja käyttäneiden oma yhteisö. Kokoamme jokaisen alueen palvelut, NA-ryhmät ja ilmoitukset – ja ennen kaikkea teidän kokemuksenne niistä. Kerro nimettömästi, miten palvelussa kohdeltiin, ja lue muiden kokemukset ennen kuin lähdet. Jokainen alue tekee kaikesta tästä myös oman painetun lehtensä."}
         </p>
       </section>
 
@@ -48,22 +55,47 @@ export default async function HomePage() {
         <h2 className="mb-3 text-lg font-bold">Valitse alue</h2>
         <div className="grid gap-3 sm:grid-cols-3">
           {ordered.map((area) => (
-            <Link
+            <div
               key={area.id}
-              href={areaPath(area)}
-              className={`rounded-lg border bg-paper p-4 hover:border-accent ${
+              className={`flex flex-col rounded-lg border bg-paper p-4 ${
                 area.id === remembered?.id ? "border-accent" : "border-line"
               }`}
             >
               {area.id === remembered?.id && (
                 <p className="text-xs uppercase tracking-wide text-accent">Viimeksi valittu</p>
               )}
-              <p className="text-lg font-bold">{area.name}</p>
-              <p className="text-xs text-muted">Palvelut, NA-ryhmät, tapahtumat ja lehti</p>
-            </Link>
+              <Link href={areaPath(area)} className="text-lg font-bold hover:underline">
+                {area.name}
+              </Link>
+              <p className="text-xs text-muted">Palvelut, kokemukset, NA-ryhmät ja lehti</p>
+              <Link href={areaPath(area, "/kokemukset#kerro")} className="mt-2 text-sm text-accent-2 underline">
+                Kerro kokemuksesi
+              </Link>
+            </div>
           ))}
         </div>
       </section>
+
+      {experiences.length > 0 && (
+        <section className="mb-10">
+          <h2 className="mb-3 text-lg font-bold">Uusimmat kokemukset palveluista</h2>
+          <div className="flex flex-col gap-3">
+            {experiences.map((e) => {
+              const area = areas.find((a) => a.id === e.service?.areaId);
+              return (
+                <ExperiencePost
+                  key={e.id}
+                  body={e.body}
+                  createdAt={e.createdAt}
+                  service={e.service}
+                  areaName={area?.name}
+                  boardHref={area && e.service ? areaPath(area, `/kokemukset?palvelu=${e.service.id}`) : undefined}
+                />
+              );
+            })}
+          </div>
+        </section>
+      )}
 
       <section className="mb-10">
         <div className="mb-3 flex items-center justify-between">
