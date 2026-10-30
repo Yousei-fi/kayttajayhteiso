@@ -30,7 +30,11 @@ export default async function ArtikkelitPage() {
               <p className="text-xs text-muted">
                 {a.author.name} · {formatDate(a.createdAt)} ·{" "}
                 {a.status === "PUBLISHED" ? "Julkaistu" : "Luonnos"}
-                {a.excludedFromZines ? " · Poistettu lehdistä" : a.includeInZine ? " · Lehteen" : ""}
+                {a.excludedFromZines
+                  ? " · Poistettu lehdistä"
+                  : a.includeInZine
+                    ? ` · Lehdessä ${formatDate(a.zineUntil)} alkavaan viikkoon asti`
+                    : ""}
                 {a.authorId === user.id ? "" : " · toisen kirjoittama"}
               </p>
             </div>

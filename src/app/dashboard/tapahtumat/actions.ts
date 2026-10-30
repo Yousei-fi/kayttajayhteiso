@@ -3,6 +3,7 @@
 import { requireAreaUser } from "@/lib/auth";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
+import { EVENT_RUNS, readZineRun, zineUntilForRun } from "@/lib/zine-run";
 
 type EventFields = {
   title: string;
@@ -10,7 +11,8 @@ type EventFields = {
   endsAt: Date | null;
   location: string | null;
   body: string;
-  includeInZine: boolean;
+  includeInZine?: boolean;
+  zineUntil?: Date | null;
 };
 
 function readEventFields(formData: FormData): EventFields {
@@ -39,8 +41,17 @@ function readEventFields(formData: FormData): EventFields {
     endsAt,
     location,
     body,
-    includeInZine: formData.get("includeInZine") === "on",
+    ...zineRunFields(formData),
   };
+}
+
+/** The paper fields the "Lehdessä" select sets; nothing when it is left as it was. */
+function zineRunFields(formData: FormData): { includeInZine?: boolean; zineUntil?: Date | null } {
+  const run = readZineRun(formData, EVENT_RUNS);
+  if (run.kind === "none") return { includeInZine: false };
+  if (run.kind === "untilEvent") return { includeInZine: true, zineUntil: null };
+  if (run.kind === "issues") return { includeInZine: true, zineUntil: zineUntilForRun(run.issues) };
+  return {};
 }
 
 /**

@@ -29,10 +29,6 @@ export default async function AsetuksetPage() {
             <input name="contactInfo" defaultValue={area.contactInfo} className={input} />
           </label>
           <label className="flex flex-col gap-1 text-sm font-medium">
-            Telegram-linkki (QR-koodi alueen etusivulla)
-            <input name="socialInfo" defaultValue={area.socialInfo} className={input} />
-          </label>
-          <label className="flex flex-col gap-1 text-sm font-medium">
             Kirjoitusehdotusten sähköposti (lehden viimeinen sivu, QR-koodi)
             <input name="submissionEmail" defaultValue={area.submissionEmail} className={input} />
           </label>

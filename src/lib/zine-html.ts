@@ -168,8 +168,7 @@ export async function buildZineHtml(params: {
     .map((item) => ({ item, meta: eventMeta(item) }))
     .sort((a, b) => (a.meta.startsAt?.getTime() ?? 0) - (b.meta.startsAt?.getTime() ?? 0));
   const dateRange = formatDateRange(edition.startDate, edition.endDate);
-  // "Syyskuun luettavaa" — the articles section is named for the month it
-  // draws from (see articleWindowStart), not for the edition's week.
+  // "Syyskuun luettavaa": the articles section is named for the edition's month.
   const articlesTitle = `${monthGenitive(edition.startDate)} luettavaa`;
 
   const [kokemuksetQr, submissionQr] = await Promise.all([

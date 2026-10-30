@@ -160,6 +160,7 @@ async function main() {
     body: "## Mitä kuulimme\n\nViime viikkojen katukierroksilla useampi ihminen kysyi haavanhoidosta ja puhtaista sitomistarvikkeista.\n\nMuistutamme, että matalan kynnyksen terveysneuvonnasta saa apua myös haavanhoitoon.\n",
     status: "PUBLISHED" as const,
     includeInZine: true,
+    zineUntil: new Date(now.getTime() + 28 * 24 * 60 * 60 * 1000),
   };
   const article1 = await prisma.article.upsert({
     where: { id: DEMO_ID.articleHaavanhoito },
@@ -173,6 +174,7 @@ async function main() {
     body: "Vertaistuki perustuu jaettuun kokemukseen. Tässä artikkelissa kerromme, miksi se on tärkeä osa Käyttäjäyhteisön toimintaa.\n",
     status: "PUBLISHED" as const,
     includeInZine: false,
+    zineUntil: new Date(now.getTime() + 28 * 24 * 60 * 60 * 1000),
   };
   await prisma.article.upsert({
     where: { id: DEMO_ID.articleVertaistuki },

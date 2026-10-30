@@ -42,6 +42,7 @@ export async function banIp(formData: FormData): Promise<void> {
   });
 
   revalidatePath("/admin/kokemukset");
+  revalidatePath("/admin/kommentit");
 }
 
 export async function unbanIp(banId: string): Promise<void> {

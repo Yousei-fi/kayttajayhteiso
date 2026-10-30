@@ -1,6 +1,7 @@
 import { requireUser } from "@/lib/auth";
 import { createArticle } from "../actions";
 import { MarkdownEditor } from "@/components/markdown-editor";
+import { ZineRunSelect } from "@/components/zine-run-select";
 
 export default async function UusiArtikkeliPage() {
   await requireUser("MEMBER", "ADMIN");
@@ -21,10 +22,7 @@ export default async function UusiArtikkeliPage() {
           <input type="file" name="image" accept="image/*" className="text-sm" />
         </label>
 
-        <label className="flex items-center gap-2 text-sm font-medium">
-          <input type="checkbox" name="includeInZine" defaultChecked />
-          Ehdota tulevaan lehteen
-        </label>
+        <ZineRunSelect kind="article" />
 
         <div className="flex gap-3">
           <button

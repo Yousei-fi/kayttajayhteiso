@@ -6,7 +6,7 @@ export default async function JulkisetArtikkelitPage() {
   const articles = await prisma.article.findMany({
     where: { status: "PUBLISHED" },
     orderBy: { createdAt: "desc" },
-    include: { author: true },
+    include: { author: true, _count: { select: { comments: true } } },
   });
 
   return (
@@ -23,7 +23,17 @@ export default async function JulkisetArtikkelitPage() {
             <Link href={`/artikkelit/${a.id}`} className="text-lg font-semibold hover:underline">
               {a.title}
             </Link>
-            <p className="text-xs text-muted">{a.author.name} · {formatDate(a.createdAt)}</p>
+            <p className="text-xs text-muted">
+              {a.author.name} · {formatDate(a.createdAt)}
+              {a._count.comments > 0 && (
+                <>
+                  {" · "}
+                  <Link href={`/artikkelit/${a.id}#kommentit`} className="hover:underline">
+                    {a._count.comments} {a._count.comments === 1 ? "kommentti" : "kommenttia"}
+                  </Link>
+                </>
+              )}
+            </p>
           </li>
         ))}
         {articles.length === 0 && <p className="text-sm text-muted">Ei vielä julkaistuja artikkeleita.</p>}

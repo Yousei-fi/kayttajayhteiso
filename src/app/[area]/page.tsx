@@ -183,7 +183,7 @@ export default async function AreaHomePage({ params }: PageProps<"/[area]">) {
 
       <section className="mb-10">
         <h2 className="mb-3 text-lg font-bold">Ota yhteyttä</h2>
-        <ContactCards email={area.contactInfo} telegram={area.socialInfo} />
+        <ContactCards email={area.contactInfo} />
       </section>
 
       <section>

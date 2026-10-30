@@ -2,6 +2,7 @@ import { prisma } from "@/lib/db";
 import { requireUser } from "@/lib/auth";
 import { updateArticle, deleteArticle } from "../actions";
 import { MarkdownEditor } from "@/components/markdown-editor";
+import { ZineRunSelect } from "@/components/zine-run-select";
 import { notFound } from "next/navigation";
 
 export default async function MuokkaaArtikkeliaPage({
@@ -51,15 +52,7 @@ export default async function MuokkaaArtikkeliaPage({
           <input type="file" name="image" accept="image/*" disabled={!canEdit} className="text-sm" />
         </label>
 
-        <label className="flex items-center gap-2 text-sm font-medium">
-          <input
-            type="checkbox"
-            name="includeInZine"
-            defaultChecked={article.includeInZine}
-            disabled={!canEdit}
-          />
-          Ehdota tulevaan lehteen
-        </label>
+        <ZineRunSelect kind="article" current={article} disabled={!canEdit} />
         {article.excludedFromZines && (
           <p className="rounded bg-red-50 px-3 py-2 text-sm text-danger">
             Ylläpito on poistanut tämän artikkelin kaikista lehdistä. Se näkyy edelleen sivustolla.

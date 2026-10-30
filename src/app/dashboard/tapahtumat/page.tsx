@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { requireAreaUser } from "@/lib/auth";
-import { formatDateTime } from "@/lib/week";
+import { formatDate, formatDateTime } from "@/lib/week";
 
 export default async function TapahtumatPage() {
   const { user, db } = await requireAreaUser("MEMBER", "ADMIN");
@@ -43,7 +43,11 @@ export default async function TapahtumatPage() {
             </p>
             <p className="text-xs text-muted">
               {e.author.name}
-              {e.includeInZine ? " · Lehteen" : " · Ei lehteen"}
+              {!e.includeInZine
+                ? " · Ei lehteen"
+                : e.zineUntil
+                  ? ` · Lehdessä ${formatDate(e.zineUntil)} alkavaan viikkoon asti`
+                  : " · Lehdessä kunnes ohi"}
               {e.authorId === user.id ? "" : " · toisen lisäämä"}
             </p>
           </li>

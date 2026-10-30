@@ -1,3 +1,4 @@
+import { ZineRunSelect } from "@/components/zine-run-select";
 import { requireAreaUser } from "@/lib/auth";
 import { formatDateTime, toDateTimeLocalValue } from "@/lib/week";
 import { notFound } from "next/navigation";
@@ -88,10 +89,7 @@ export default async function TapahtumaPage({
             />
           </label>
 
-          <label className="flex items-center gap-2 text-sm font-medium">
-            <input type="checkbox" name="includeInZine" defaultChecked={event.includeInZine} />
-            Sisällytä lehteen
-          </label>
+          <ZineRunSelect kind="event" current={event} />
 
           <button type="submit" className="rounded bg-accent px-4 py-2 font-semibold text-white">
             Tallenna

@@ -38,7 +38,6 @@ Toimimme alueittain pääkaupunkiseudulla, Tampereella ja Turussa. Jokaisella al
 Yhteisöömme ovat tervetulleet niin huumeidenkäyttäjät, kuin niitä ennen käyttäneet tai kuka tahansa yhteisöstämme kiinnostunut taho.`;
 
 const REAL_EMAIL = "tampere@kayttajayhteiso.fi";
-const REAL_TELEGRAM = "http://dy.fi/7zs";
 const REAL_SITE_URL = "https://kayttajayhteiso.fi";
 // Seeded onto every install until it was dropped from the paper and the
 // site. Cleared below wherever it is still exactly this text, so existing
@@ -53,7 +52,6 @@ const RETIRED_BACKPAGE_TEXT =
 // later boot. The Tampere logo was the site's own before it went national.
 const STALE_DEFAULTS = {
   logoPaths: ["/branding/logo-placeholder.svg", "/branding/logo.jpeg"],
-  socialInfo: "@tampereenkayttajayhteiso",
 };
 
 // Addresses this project has used before moving to its own domain: the
@@ -104,7 +102,6 @@ async function syncTampere(): Promise<void> {
   const fixes: Record<string, string> = {};
   if (!existing.aboutText) fixes.aboutText = REAL_ABOUT_TEXT;
   if (!existing.contactInfo || RETIRED_CONTACT_EMAILS.includes(existing.contactInfo)) fixes.contactInfo = REAL_EMAIL;
-  if (!existing.socialInfo || existing.socialInfo === STALE_DEFAULTS.socialInfo) fixes.socialInfo = REAL_TELEGRAM;
   if (!existing.submissionEmail || RETIRED_SUBMISSION_EMAILS.includes(existing.submissionEmail))
     fixes.submissionEmail = REAL_EMAIL;
 

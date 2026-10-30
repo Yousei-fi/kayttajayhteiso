@@ -5,6 +5,15 @@ import { requireUser, requireAreaUser } from "@/lib/auth";
 import { saveImageUpload } from "@/lib/uploads";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
+import { ARTICLE_RUNS, DEFAULT_ARTICLE_RUN, readZineRun, zineUntilForRun } from "@/lib/zine-run";
+
+/** The paper fields the "Lehdessä" select sets; nothing when it is left as it was. */
+function zineRunFields(formData: FormData): { includeInZine?: boolean; zineUntil?: Date } {
+  const run = readZineRun(formData, ARTICLE_RUNS);
+  if (run.kind === "none") return { includeInZine: false };
+  if (run.kind === "issues") return { includeInZine: true, zineUntil: zineUntilForRun(run.issues) };
+  return {};
+}
 
 async function assertCanEdit(articleId: string) {
   const user = await requireUser("MEMBER", "ADMIN");
@@ -21,7 +30,7 @@ export async function createArticle(formData: FormData): Promise<void> {
   const title = String(formData.get("title") ?? "").trim();
   const body = String(formData.get("body") ?? "").trim();
   const status = formData.get("status") === "PUBLISHED" ? "PUBLISHED" : "DRAFT";
-  const includeInZine = formData.get("includeInZine") === "on";
+  const run = zineRunFields(formData);
   const image = formData.get("image") as File | null;
 
   if (!title || !body) {
@@ -31,7 +40,15 @@ export async function createArticle(formData: FormData): Promise<void> {
   const imagePath = await saveImageUpload(image);
 
   const article = await prisma.article.create({
-    data: { authorId: user.id, title, body, status, includeInZine, imagePath },
+    data: {
+      authorId: user.id,
+      title,
+      body,
+      status,
+      imagePath,
+      includeInZine: run.includeInZine ?? true,
+      zineUntil: run.zineUntil ?? zineUntilForRun(DEFAULT_ARTICLE_RUN),
+    },
   });
 
   revalidatePath("/dashboard/artikkelit");
@@ -45,7 +62,7 @@ export async function updateArticle(articleId: string, formData: FormData): Prom
   const title = String(formData.get("title") ?? "").trim();
   const body = String(formData.get("body") ?? "").trim();
   const status = formData.get("status") === "PUBLISHED" ? "PUBLISHED" : "DRAFT";
-  const includeInZine = formData.get("includeInZine") === "on";
+  const run = zineRunFields(formData);
   const image = formData.get("image") as File | null;
 
   if (!title || !body) {
@@ -60,7 +77,7 @@ export async function updateArticle(articleId: string, formData: FormData): Prom
       title,
       body,
       status,
-      includeInZine,
+      ...run,
       ...(newImagePath ? { imagePath: newImagePath } : {}),
     },
   });
@@ -88,6 +105,7 @@ export async function duplicateAsDraftFromRound(roundId: string): Promise<void> 
       body: round.notes,
       status: "DRAFT",
       includeInZine: false,
+      zineUntil: zineUntilForRun(DEFAULT_ARTICLE_RUN),
     },
   });
 

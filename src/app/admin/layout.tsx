@@ -24,6 +24,7 @@ export default async function AdminLayout({ children }: LayoutProps<"/admin">) {
           <Link href="/admin/lehti" className="hover:underline">Lehdet</Link>
           <Link href="/admin/kayttajat" className="hover:underline">Käyttäjät</Link>
           <Link href="/admin/kokemukset" className="hover:underline">Kokemukset</Link>
+          <Link href="/admin/kommentit" className="hover:underline">Kommentit</Link>
           <Link href="/admin/asetukset" className="hover:underline">Asetukset</Link>
           <Link href="/dashboard" className="hover:underline">Takaisin omalle sivulle</Link>
         </nav>

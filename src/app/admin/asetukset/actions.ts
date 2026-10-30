@@ -38,7 +38,6 @@ export async function updateAreaSettings(areaId: string, formData: FormData): Pr
     data: {
       aboutText: String(formData.get("aboutText") ?? "").trim(),
       contactInfo: String(formData.get("contactInfo") ?? "").trim(),
-      socialInfo: String(formData.get("socialInfo") ?? "").trim(),
       submissionEmail: String(formData.get("submissionEmail") ?? "").trim(),
       // Launching an area is a national decision.
       ...(isNationalAdmin(admin) ? { active: formData.get("active") === "on" } : {}),

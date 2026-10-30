@@ -101,12 +101,32 @@ model Article {
   /// at once (it stays on the site). Separate from includeInZine so an
   /// author saving their article never undoes it.
   excludedFromZines Boolean       @default(false)
+  /// The last edition (by its Monday) the article is printed in; the author
+  /// picks how many weekly issues it runs. See src/lib/zine-run.ts.
+  zineUntil         DateTime
   createdAt         DateTime      @default(now())
   updatedAt         DateTime      @updatedAt
 
-  author User @relation(fields: [authorId], references: [id])
+  author   User             @relation(fields: [authorId], references: [id])
+  comments ArticleComment[]
 
   @@index([authorId])
+}
+
+/// An anonymous public comment on an article, moderated like Kokemukset:
+/// no account, an optional nickname, the poster's IP for bans.
+model ArticleComment {
+  id        String   @id @default(cuid())
+  articleId String
+  nickname  String?
+  body      String
+  ipAddress String?
+  createdAt DateTime @default(now())
+
+  article Article @relation(fields: [articleId], references: [id], onDelete: Cascade)
+
+  @@index([articleId, createdAt])
+  @@index([createdAt])
 }
 
 /// A meeting or event the community itself is putting on ("Käyttäjäyhteisön
@@ -125,6 +145,9 @@ model CommunityEvent {
   location      String?
   body          String
   includeInZine Boolean   @default(true)
+  /// Optional last edition (by its Monday) to print the event in. Without
+  /// one it runs until the event is over.
+  zineUntil     DateTime?
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
 
@@ -194,7 +217,7 @@ model ZineItem {
 }
 
 /// The national community's settings: one row. Anything that differs by
-/// place (contact addresses, Telegram group, the area's own about text) is
+/// place (contact addresses, the area's own about text) is
 /// on Area instead.
 model SiteSettings {
   id            Int    @id @default(1)
@@ -237,8 +260,6 @@ model Area {
   aboutText       String   @default("")
   /// Area email: mailto link and QR code on /tietoa and the area page.
   contactInfo     String   @default("")
-  /// Area Telegram link, with a QR code.
-  socialInfo      String   @default("")
   /// Shown on the last page of this area's paper ("write for the next
   /// issue"), with a mailto: QR code.
   submissionEmail String   @default("")

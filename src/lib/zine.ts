@@ -1,5 +1,5 @@
 import { prisma, areaDb } from "@/lib/db";
-import { articleWindowStart, upcomingEditionRange } from "@/lib/week";
+import { upcomingEditionRange } from "@/lib/week";
 import type { Area, ZineEdition } from "@prisma/client";
 
 /**
@@ -40,11 +40,11 @@ export async function getZineDirectorySections(edition: Pick<ZineEdition, "areaI
  * qualifies is dropped, and content still qualifying has its snapshot
  * refreshed. Manual admin ordering and exclusions are preserved.
  *
- * Alerts qualify for the edition's week; articles qualify for the month
- * up to it (see articleWindowStart), so the same article can run in
- * several consecutive issues before ageing out; community events qualify
- * while they are still ahead of the edition, however far ahead that is —
- * a date people need to plan around is worth printing early.
+ * Alerts qualify for the edition's week. Articles run in as many weekly
+ * issues as their author chose (zineUntil, see src/lib/zine-run.ts; four by
+ * default). Community events qualify while they are still ahead of the
+ * edition, however far ahead that is — a date people need to plan around is
+ * worth printing early — unless their author limited them with zineUntil.
  *
  * Alerts and events are the area's own; articles are national, so every
  * area's edition draws on the same ones, and an article a national admin
@@ -86,7 +86,7 @@ export async function syncEditionItems(
         status: "PUBLISHED",
         includeInZine: true,
         excludedFromZines: false,
-        createdAt: { gte: articleWindowStart(weekStart) },
+        zineUntil: { gte: weekStart },
       },
       include: { author: true },
     }),
@@ -94,6 +94,7 @@ export async function syncEditionItems(
       where: {
         includeInZine: true,
         OR: [{ endsAt: { gte: weekStart } }, { endsAt: null, startsAt: { gte: weekStart } }],
+        AND: [{ OR: [{ zineUntil: null }, { zineUntil: { gte: weekStart } }] }],
       },
       include: { author: true },
     }),
